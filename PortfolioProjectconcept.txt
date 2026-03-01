@@ -1,0 +1,43 @@
+backend - Django
+
+
+frontend - react
+
+login - 
+
+list of portfolios - eg. adani then inside that lost of stocks
+
+
+                      PE ratio
+
+                      discount level
+                       
+                      graph
+
+
+
+Table  and api : User
+        staff
+        portfolio  
+        stocks  
+
+
+
+3 projects - 
+
+staff
+
+portfolio - 2 model/Table - portfolio and stocks
+
+EDA
+
+ML
+
+
+Login ->
+ PAGE OPEN -> PORTFOLIO
+
+-> lIST OF PORTFOLIOS - > A SECTORS -> WHEN CLICKED ON ONE SECTOR WITH ID
+
+WE WILL GET THE NAMES WITH ID
+THEN CLCIKED ON STOCKS WE WILL GET THE DETAILS OF STOCK p/E , moving AVG , graph ETC

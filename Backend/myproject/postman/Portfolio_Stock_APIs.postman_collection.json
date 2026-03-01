@@ -1,0 +1,145 @@
+{
+  "info": {
+    "_postman_id": "3f0cbfe2-21e2-4ea6-a18e-6f7f0d0a9e61",
+    "name": "Portfolio Stock APIs",
+    "description": "Collection for Django stock and sector endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Sector Stocks",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            ""
+          ]
+        },
+        "description": "Returns merged stock data for all configured sectors."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has data array', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('data');",
+              "  pm.expect(jsonData.data).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Stock Detail By Symbol",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/stock/{{symbol}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "stock",
+            "{{symbol}}",
+            ""
+          ]
+        },
+        "description": "Returns one stock record with name, symbol, sector, price, change, market cap, P/E, currency and exchange."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has symbol field', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('symbol');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Stocks By Sector",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/sector-stocks/sector-stocks/?sector={{sector}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "sector-stocks",
+            "sector-stocks",
+            ""
+          ],
+          "query": [
+            {
+              "key": "sector",
+              "value": "{{sector}}"
+            }
+          ]
+        },
+        "description": "Returns stocks for a specific sector."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response sector matches requested sector', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('sector');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "symbol",
+      "value": "HDFCBANK.NS"
+    },
+    {
+      "key": "sector",
+      "value": "banking"
+    }
+  ]
+}
