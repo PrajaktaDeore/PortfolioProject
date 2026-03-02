@@ -7,6 +7,84 @@ function formatValue(value) {
   return value === null || value === undefined || value === '' ? '-' : value
 }
 
+function formatChartLabel(isoDate) {
+  if (!isoDate) return ''
+  const date = new Date(isoDate)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function PeRatioChart({ history, symbol, currentPeRatio }) {
+  if (!history.length) {
+    return (
+      <div className="alert alert-light border mb-0" role="status">
+        P/E history is not available yet for {symbol || 'this stock'}.
+      </div>
+    )
+  }
+
+  if (history.length < 2) {
+    return (
+      <div className="alert alert-light border mb-0" role="status">
+        Not enough history to draw a trend for {symbol || 'this stock'}. Current P/E: {formatValue(currentPeRatio)}
+      </div>
+    )
+  }
+
+  const width = 760
+  const height = 260
+  const padding = 36
+  const min = Math.min(...history.map((point) => point.pe_ratio))
+  const max = Math.max(...history.map((point) => point.pe_ratio))
+  const span = max - min || 1
+
+  const points = history
+    .map((point, index) => {
+      const x = padding + (index / Math.max(history.length - 1, 1)) * (width - padding * 2)
+      const y = height - padding - ((point.pe_ratio - min) / span) * (height - padding * 2)
+      return `${x},${y}`
+    })
+    .join(' ')
+
+  const latest = history[history.length - 1]
+
+  return (
+    <div className="border rounded p-3">
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <h6 className="mb-0">P/E Ratio Trend</h6>
+        <small className="text-secondary">
+          Latest: <strong>{latest.pe_ratio}</strong>
+        </small>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} width="100%" role="img" aria-label="P/E ratio trend chart">
+        <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#adb5bd" />
+        <line
+          x1={padding}
+          y1={height - padding}
+          x2={width - padding}
+          y2={height - padding}
+          stroke="#adb5bd"
+        />
+        <polyline fill="none" stroke="#0d6efd" strokeWidth="3" points={points} />
+        {history.map((point, index) => {
+          const x = padding + (index / Math.max(history.length - 1, 1)) * (width - padding * 2)
+          const y = height - padding - ((point.pe_ratio - min) / span) * (height - padding * 2)
+          return <circle key={`${point.captured_at}-${index}`} cx={x} cy={y} r="3.5" fill="#0d6efd" />
+        })}
+      </svg>
+      <div className="d-flex justify-content-between mt-2">
+        <small className="text-secondary">{formatChartLabel(history[0]?.captured_at)}</small>
+        <small className="text-secondary">{formatChartLabel(latest?.captured_at)}</small>
+      </div>
+    </div>
+  )
+}
+
 function Stocks() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -24,11 +102,11 @@ function Stocks() {
 
     const controller = new AbortController()
 
-    async function fetchStockFromAllSectorStocks() {
+    async function fetchStockDetail() {
       setLoading(true)
       setError('')
       try {
-        const response = await fetch(`${API_BASE_URL}/all-sector-stocks/`, {
+        const response = await fetch(`${API_BASE_URL}/all-sector-stocks/stock/${symbol}/`, {
           method: 'GET',
           signal: controller.signal,
         })
@@ -38,10 +116,8 @@ function Stocks() {
         }
 
         const result = await response.json()
-        const list = result?.data || []
-        const matchedStock = list.find((item) => item?.symbol === symbol)
-        if (matchedStock) {
-          setStock(matchedStock)
+        if (result?.symbol) {
+          setStock(result)
         } else {
           setError(`Stock ${symbol} not found in API response.`)
         }
@@ -55,9 +131,9 @@ function Stocks() {
       }
     }
 
-    fetchStockFromAllSectorStocks()
+    fetchStockDetail()
     return () => controller.abort()
-  }, [symbol])
+  }, [symbol, stateStock])
 
   if (loading) {
     return (
@@ -155,6 +231,16 @@ function Stocks() {
               </tr>
             </tbody>
           </table>
+        </div>
+        <div className="mt-4">
+          <PeRatioChart
+            symbol={stock?.symbol}
+            currentPeRatio={stock?.pe_ratio}
+            history={(stock?.pe_history || [])
+              .filter((point) => point && point.pe_ratio !== null && point.pe_ratio !== undefined)
+              .map((point) => ({ ...point, pe_ratio: Number(point.pe_ratio) }))
+              .filter((point) => !Number.isNaN(point.pe_ratio))}
+          />
         </div>
       </div>
     </div>

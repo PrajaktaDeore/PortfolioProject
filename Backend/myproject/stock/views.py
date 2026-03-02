@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Sector, Stock
+from .models import Sector, Stock, StockPeHistory
 
 
 SECTOR_SYMBOLS = {
@@ -98,7 +98,7 @@ def _save_payload_to_db(payload):
                 if not symbol:
                     continue
 
-                Stock.objects.update_or_create(
+                stock_obj, _ = Stock.objects.update_or_create(
                     symbol=symbol,
                     defaults={
                         "name": item.get("name"),
@@ -111,9 +111,37 @@ def _save_payload_to_db(payload):
                         "exchange": item.get("exchange"),
                     },
                 )
+
+                pe_ratio = item.get("pe_ratio")
+                if pe_ratio is not None:
+                    StockPeHistory.objects.create(stock=stock_obj, pe_ratio=pe_ratio)
     except OperationalError:
         # Keep API responses available even if SQLite is temporarily locked.
         return
+
+
+def _load_pe_history(symbol, limit=30):
+    if not symbol:
+        return []
+
+    try:
+        rows = (
+            StockPeHistory.objects.select_related("stock")
+            .filter(stock__symbol=symbol)
+            .order_by("-captured_at")[:limit]
+        )
+    except Exception:
+        return []
+
+    history = []
+    for row in reversed(list(rows)):
+        history.append(
+            {
+                "pe_ratio": row.pe_ratio,
+                "captured_at": row.captured_at.isoformat(),
+            }
+        )
+    return history
 
 
 def _load_payload_from_db():
@@ -385,6 +413,7 @@ class StockDetailView(APIView):
             "change_percent": None,
             "market_cap": None,
             "pe_ratio": None,
+            "pe_history": [],
             "currency": None,
             "exchange": None,
         }
@@ -465,6 +494,7 @@ class StockDetailView(APIView):
                 "exchange": quote_item.get("exchange"),
             }
             _save_payload_to_db([payload])
+            payload["pe_history"] = _load_pe_history(symbol)
             return Response(payload, status=status.HTTP_200_OK)
 
         try:
@@ -475,6 +505,7 @@ class StockDetailView(APIView):
                 "warning": "Primary quote API unavailable; fallback data returned.",
             }
             _save_payload_to_db([payload])
+            payload["pe_history"] = _load_pe_history(symbol)
             return Response(payload, status=status.HTTP_200_OK)
         except Exception as exc:
             payload = {
@@ -483,4 +514,5 @@ class StockDetailView(APIView):
                 "error": f"quote_api={quote_error}; yfinance={exc}",
             }
             _save_payload_to_db([payload])
+            payload["pe_history"] = _load_pe_history(symbol)
             return Response(payload, status=status.HTTP_200_OK)
