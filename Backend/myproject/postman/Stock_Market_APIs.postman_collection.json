@@ -1,0 +1,236 @@
+{
+  "info": {
+    "_postman_id": "7e80dc6f-9997-4eec-8ef1-2a4ec4f5c144",
+    "name": "Stock Market APIs (Current)",
+    "description": "Collection for current stock, sector, market overview, and gold-silver endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Sector Stocks",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            ""
+          ]
+        },
+        "description": "Returns merged stock data for all configured sectors."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has data array', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('data');",
+              "  pm.expect(jsonData.data).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Market Overview (Nifty + Sensex)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/market-overview/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "market-overview",
+            ""
+          ]
+        },
+        "description": "Returns Nifty and Sensex overview from quote API/yfinance fallback."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has indices array', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('indices');",
+              "  pm.expect(jsonData.indices).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Stock Detail By Symbol",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/stock/{{symbol}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "stock",
+            "{{symbol}}",
+            ""
+          ]
+        },
+        "description": "Returns one stock record with symbol and detailed fields."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has symbol field', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('symbol');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Stocks By Sector",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/sector-stocks/sector-stocks/?sector={{sector}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "sector-stocks",
+            "sector-stocks",
+            ""
+          ],
+          "query": [
+            {
+              "key": "sector",
+              "value": "{{sector}}"
+            }
+          ]
+        },
+        "description": "Returns stocks for the selected sector."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Gold Silver Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/gold-silver/?period={{period}}&interval={{interval}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "gold-silver",
+            ""
+          ],
+          "query": [
+            {
+              "key": "period",
+              "value": "{{period}}"
+            },
+            {
+              "key": "interval",
+              "value": "{{interval}}"
+            }
+          ]
+        },
+        "description": "Returns gold and silver current values with recent OHLC history."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has data array', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('data');",
+              "  pm.expect(jsonData.data).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "symbol",
+      "value": "HDFCBANK.NS"
+    },
+    {
+      "key": "sector",
+      "value": "banking"
+    },
+    {
+      "key": "period",
+      "value": "1mo"
+    },
+    {
+      "key": "interval",
+      "value": "1d"
+    }
+  ]
+}

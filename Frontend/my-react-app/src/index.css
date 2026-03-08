@@ -1,9 +1,434 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+
+:root {
+  /* Dark navy theme */
+  --app-bg: #050b1f;
+  --surface: #0b1733;
+  --surface-soft: #0f244a;
+  --surface-sky: #112d5d;
+  --surface-mint: #0b2430;
+  --surface-peach: #261a24;
+  --surface-border: rgba(148, 163, 184, 0.18);
+
+  --text-main: #e5e7eb;
+  --text-muted: #94a3b8;
+
+  /* Sweet, calm accents (avoid harsh saturation) */
+  --primary: #5b6ee1; /* soft blue */
+  --primary-hover: #4f61d0;
+  --primary-glow: rgba(91, 110, 225, 0.14);
+
+  --success: #2fbf8f; /* mint */
+  --danger: #ef6a7a; /* soft rose */
+  --warning: #f6b44f; /* soft amber */
+  --info: #60a5fa; /* soft sky */
+
+  --shadow-soft: 0 12px 34px rgba(2, 6, 23, 0.55);
+
+  /* Chart palette for dark UI */
+  --chart-axis: rgba(226, 232, 240, 0.22);
+  --chart-grid: rgba(226, 232, 240, 0.08);
+  --chart-label: rgba(226, 232, 240, 0.9);
+  --chart-muted: rgba(148, 163, 184, 0.95);
+  --chart-line-1: var(--primary);
+  --chart-line-2: var(--danger);
+  --chart-line-3: var(--success);
+  --chart-bar-1: #a78bfa; /* lavender */
+  --chart-bar-2: var(--info);
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   min-width: 320px;
-  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(91, 110, 225, 0.22), transparent 46%),
+    radial-gradient(circle at 100% 0%, rgba(168, 85, 247, 0.14), transparent 48%),
+    radial-gradient(circle at 20% 100%, rgba(47, 191, 143, 0.1), transparent 55%),
+    var(--app-bg);
+  color: var(--text-main);
+  font-family: "Plus Jakarta Sans", "Outfit", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  overflow-x: hidden;
 }
 
 #root {
   min-height: 100vh;
+}
+
+/* Chart + analytics surfaces */
+.chart-panel {
+  border-radius: 18px;
+  border: 1px solid var(--surface-border);
+  background:
+    radial-gradient(900px 900px at 0% 0%, rgba(91, 110, 225, 0.1), transparent 55%),
+    linear-gradient(180deg, var(--surface) 0%, var(--surface-soft) 100%);
+  box-shadow: var(--shadow-soft);
+}
+
+.chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart-axis {
+  stroke: var(--chart-axis);
+}
+
+.chart-grid {
+  stroke: var(--chart-grid);
+  stroke-dasharray: 4 6;
+}
+
+.chart-text {
+  fill: var(--chart-label);
+}
+
+.chart-text-muted {
+  fill: var(--chart-muted);
+}
+
+/* Back-compat: many SVGs inline hard-coded light-theme colors. Remap for dark UI. */
+svg [stroke="#9ca3af"],
+svg [stroke="#adb5bd"] {
+  stroke: var(--chart-axis) !important;
+}
+
+svg [stroke="#d1d5db"] {
+  stroke: var(--chart-grid) !important;
+}
+
+svg [fill="#374151"] {
+  fill: var(--chart-label) !important;
+}
+
+svg [fill="#6b7280"],
+svg [fill="#4b5563"] {
+  fill: var(--chart-muted) !important;
+}
+
+svg [stroke="#2563eb"],
+svg [stroke="#0d6efd"] {
+  stroke: var(--chart-line-1) !important;
+}
+
+svg [stroke="#dc2626"] {
+  stroke: var(--chart-line-2) !important;
+}
+
+svg [fill="#0d6efd"] {
+  fill: var(--chart-line-1) !important;
+}
+
+svg [fill="#0284c7"] {
+  fill: var(--chart-line-2) !important;
+}
+
+svg rect[fill="#7c3aed"] {
+  fill: var(--chart-bar-1) !important;
+}
+
+svg rect[fill="#0ea5e9"] {
+  fill: var(--chart-bar-2) !important;
+}
+
+/* Chart modal (used by Home and PortfolioHome) */
+.app-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 2000;
+}
+
+.app-modal {
+  width: min(1100px, 100%);
+  max-height: 88vh;
+  overflow: hidden;
+  border-radius: 18px !important;
+}
+
+.app-modal.card {
+  background: var(--surface);
+  border: 1px solid var(--surface-border) !important;
+}
+
+.app-modal .card-header {
+  background: var(--surface-soft) !important;
+  border-bottom: 1px solid var(--surface-border) !important;
+}
+
+.app-modal-body {
+  overflow: auto;
+}
+
+.chart-modal-frame {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+}
+
+.chart-modal-svg svg {
+  width: 100% !important;
+  height: min(70vh, 720px) !important;
+  display: block;
+  background: transparent !important;
+}
+
+/* Some exported SVGs include an explicit white backdrop rect; remove it in the modal for dark theme. */
+.chart-modal-svg svg > rect:first-child[fill="#ffffff"],
+.chart-modal-svg svg > rect:first-child[fill="white"] {
+  fill: var(--surface) !important;
+}
+
+/* Bootstrap-friendly soft UI */
+.app-navbar {
+  background: rgba(5, 11, 31, 0.72) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--surface-border) !important;
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.35);
+}
+
+.app-brand {
+  font-family: "Outfit", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  background: linear-gradient(135deg, var(--primary) 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.app-nav-link {
+  color: var(--text-muted) !important;
+  border-radius: 12px;
+  padding: 0.45rem 0.75rem !important;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.app-nav-link:hover {
+  color: var(--text-main) !important;
+  background: rgba(91, 110, 225, 0.08);
+  transform: translateY(-1px);
+}
+
+.app-nav-link:focus-visible {
+  outline: 2px solid rgba(139, 140, 255, 0.55);
+  outline-offset: 2px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--surface-border) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--shadow-soft) !important;
+  overflow: hidden;
+}
+
+.card-header {
+  background: var(--surface-soft) !important;
+  border-bottom: 1px solid var(--surface-border) !important;
+  padding: 1.1rem 1.25rem !important;
+}
+
+.card-body,
+.card-footer {
+  color: var(--text-main);
+}
+
+.bg-white {
+  background: var(--surface) !important;
+  color: var(--text-main) !important;
+}
+
+.text-primary {
+  color: var(--primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-muted) !important;
+}
+
+.btn {
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: var(--primary);
+  border: 1px solid rgba(91, 110, 225, 0.35);
+  box-shadow: 0 8px 18px var(--primary-glow);
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  border-color: rgba(91, 110, 225, 0.45);
+}
+
+.btn-outline-primary {
+  background: #ffffff;
+  border: 1px solid rgba(91, 110, 225, 0.55);
+  color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+  background: rgba(91, 110, 225, 0.1);
+  border-color: rgba(91, 110, 225, 0.7);
+  color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background: rgba(107, 114, 128, 0.12);
+  border: 1px solid rgba(107, 114, 128, 0.22);
+  color: var(--text-main);
+}
+
+.btn-secondary:hover {
+  background: rgba(107, 114, 128, 0.16);
+  border-color: rgba(107, 114, 128, 0.26);
+  color: var(--text-main);
+}
+
+.form-control,
+.form-select {
+  border-radius: 12px;
+  border-color: var(--surface-border);
+  background: var(--surface);
+  color: var(--text-main);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(91, 110, 225, 0.65);
+  box-shadow: 0 0 0 0.18rem rgba(91, 110, 225, 0.14);
+}
+
+.list-group-item {
+  background: var(--surface);
+  border-color: var(--surface-border);
+  color: var(--text-main);
+}
+
+.modal-backdrop.show {
+  opacity: 1;
+  background: rgba(17, 24, 39, 0.32);
+}
+
+.modal-content {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 18px;
+  box-shadow: 0 22px 60px rgba(17, 24, 39, 0.18);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--surface-border);
+}
+
+.modal-header {
+  background: var(--surface-sky);
+}
+
+.btn-close {
+  filter: invert(1) grayscale(100%);
+  opacity: 0.75;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+.badge.text-bg-primary {
+  background: rgba(139, 140, 255, 0.14) !important;
+  color: var(--primary) !important;
+  border: 1px solid rgba(139, 140, 255, 0.22);
+}
+
+.badge.text-bg-secondary {
+  background: rgba(107, 114, 128, 0.12) !important;
+  color: var(--text-main) !important;
+  border: 1px solid rgba(107, 114, 128, 0.18);
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInScale 0.45s ease-out forwards;
+}
+
+.alert {
+  border-radius: 12px;
+}
+
+.alert-light {
+  background: var(--surface-soft) !important;
+  border-color: var(--surface-border) !important;
+  color: var(--text-main) !important;
+}
+
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text-main);
+  --bs-table-border-color: var(--surface-border);
+  --bs-table-striped-bg: rgba(15, 36, 74, 0.65);
+  --bs-table-striped-color: var(--text-main);
+  --bs-table-hover-bg: rgba(91, 110, 225, 0.12);
+  --bs-table-hover-color: var(--text-main);
+
+  color: var(--text-main) !important;
+  border-color: var(--surface-border) !important;
+}
+
+.table > :not(caption) > * > * {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+.table thead th {
+  background: var(--surface-sky) !important;
+  border-bottom: 1px solid var(--surface-border) !important;
+  color: rgba(226, 232, 240, 0.92) !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: rgba(15, 36, 74, 0.65) !important;
+}
+
+.table-hover > tbody > tr:hover > * {
+  background-color: rgba(91, 110, 225, 0.12) !important;
+}
+
+.login-shell,
+.signup-shell {
+  min-height: calc(100vh - 160px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 0;
+}
+
+.login-card,
+.signup-card {
+  width: 100%;
+  max-width: 460px;
 }

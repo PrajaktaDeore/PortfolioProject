@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import ChartModal from '../components/ChartModal'
+import { useChartModal } from '../components/useChartModal'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
@@ -20,6 +22,8 @@ function formatChartLabel(isoDate) {
 }
 
 function PeRatioChart({ history, symbol, currentPeRatio }) {
+  const { modal, close, openSvg } = useChartModal()
+
   if (!history.length) {
     return (
       <div className="alert alert-light border mb-0" role="status">
@@ -51,30 +55,61 @@ function PeRatioChart({ history, symbol, currentPeRatio }) {
     })
     .join(' ')
 
+  const baseY = height - padding
+  const areaPoints = `${points} ${width - padding},${baseY} ${padding},${baseY}`
+
   const latest = history[history.length - 1]
 
   return (
     <div className="border rounded p-3">
+      <ChartModal {...modal} onClose={close} />
       <div className="d-flex justify-content-between align-items-center mb-2">
         <h6 className="mb-0">P/E Ratio Trend</h6>
         <small className="text-secondary">
           Latest: <strong>{latest.pe_ratio}</strong>
         </small>
       </div>
-      <svg viewBox={`0 0 ${width} ${height}`} width="100%" role="img" aria-label="P/E ratio trend chart">
-        <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#adb5bd" />
+      <svg
+        className="chart-svg"
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label="P/E ratio trend chart"
+        onClick={(e) => openSvg(e, 'P/E Ratio Trend')}
+        style={{ cursor: 'pointer' }}
+      >
+        <defs>
+          <linearGradient id="peArea" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--chart-line-3)" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="var(--chart-line-3)" stopOpacity="0" />
+          </linearGradient>
+          <filter id="peGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="2.4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <line x1={padding} y1={padding} x2={padding} y2={height - padding} className="chart-axis" />
         <line
           x1={padding}
           y1={height - padding}
           x2={width - padding}
           y2={height - padding}
-          stroke="#adb5bd"
+          className="chart-axis"
         />
-        <polyline fill="none" stroke="#0d6efd" strokeWidth="3" points={points} />
+        <polyline fill="url(#peArea)" stroke="none" points={areaPoints} />
+        <polyline
+          fill="none"
+          stroke="var(--chart-line-3)"
+          strokeWidth="3"
+          filter="url(#peGlow)"
+          points={points}
+        />
         {history.map((point, index) => {
           const x = padding + (index / Math.max(history.length - 1, 1)) * (width - padding * 2)
           const y = height - padding - ((point.pe_ratio - min) / span) * (height - padding * 2)
-          return <circle key={`${point.captured_at}-${index}`} cx={x} cy={y} r="3.5" fill="#0d6efd" />
+          return <circle key={`${point.captured_at}-${index}`} cx={x} cy={y} r="3.5" fill="var(--chart-line-3)" />
         })}
       </svg>
       <div className="d-flex justify-content-between mt-2">
@@ -151,7 +186,7 @@ function Stocks() {
       <div className="alert alert-danger shadow-sm" role="alert">
         <h5 className="alert-heading mb-2">Unable to load stock details</h5>
         <p className="mb-3">{error}</p>
-        <button type="button" className="btn btn-primary btn-sm" onClick={() => navigate('/portfolio')}>
+        <button type="button" className="btn btn-primary btn-sm" onClick={() => navigate('/sectors')}>
           Back to Portfolio
         </button>
       </div>
@@ -166,7 +201,7 @@ function Stocks() {
           <p className="text-secondary mb-4">
             No stock details found. Please select a stock from portfolio page.
           </p>
-          <button type="button" className="btn btn-primary" onClick={() => navigate('/portfolio')}>
+          <button type="button" className="btn btn-primary" onClick={() => navigate('/sectors')}>
             Back to Portfolio
           </button>
         </div>
@@ -175,10 +210,10 @@ function Stocks() {
   }
 
   return (
-    <div className="card border-0 shadow-sm">
+    <div className="card border-0 shadow-sm animate-fade-in">
       <div className="card-header bg-white d-flex justify-content-between align-items-center">
         <h4 className="mb-0">Stock Details</h4>
-        <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => navigate('/portfolio')}>
+        <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => navigate('/sectors')}>
           Back to Portfolio
         </button>
       </div>

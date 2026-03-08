@@ -1,0 +1,294 @@
+{
+  "info": {
+    "_postman_id": "40dc8610-4a8d-4a6e-870f-2fdd90c4d073",
+    "name": "Portfolio Stock + Gold Silver APIs",
+    "description": "Collection for stock, sector, and gold-silver correlation endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Sector Stocks",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            ""
+          ]
+        },
+        "description": "Returns merged stock data for all configured sectors."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has data array', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('data');",
+              "  pm.expect(jsonData.data).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Stock Detail By Symbol",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/stock/{{symbol}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "stock",
+            "{{symbol}}",
+            ""
+          ]
+        },
+        "description": "Returns one stock record with symbol and detailed fields."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has symbol field', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('symbol');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Stocks By Sector",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/sector-stocks/sector-stocks/?sector={{sector}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "sector-stocks",
+            "sector-stocks",
+            ""
+          ],
+          "query": [
+            {
+              "key": "sector",
+              "value": "{{sector}}"
+            }
+          ]
+        },
+        "description": "Returns stocks for a specific sector."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gold Silver Correlation (JSON)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/gold-silver/?period={{period}}&interval={{interval}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "gold-silver",
+            ""
+          ],
+          "query": [
+            {
+              "key": "period",
+              "value": "{{period}}"
+            },
+            {
+              "key": "interval",
+              "value": "{{interval}}"
+            }
+          ]
+        },
+        "description": "Returns gold and silver closes with computed correlation."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has correlation and data', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('correlation');",
+              "  pm.expect(jsonData).to.have.property('data');",
+              "  pm.expect(jsonData.data).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gold Silver CSV Download",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/gold-silver/csv/?period={{period}}&interval={{interval}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "gold-silver",
+            "csv",
+            ""
+          ],
+          "query": [
+            {
+              "key": "period",
+              "value": "{{period}}"
+            },
+            {
+              "key": "interval",
+              "value": "{{interval}}"
+            }
+          ]
+        },
+        "description": "Downloads CSV file with date, gold_close, silver_close."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('CSV content-type is returned', function () {",
+              "  pm.expect(pm.response.headers.get('Content-Type')).to.include('text/csv');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gold Silver Graph Download (SVG)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/gold-silver/graph/?period={{period}}&interval={{interval}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "gold-silver",
+            "graph",
+            ""
+          ],
+          "query": [
+            {
+              "key": "period",
+              "value": "{{period}}"
+            },
+            {
+              "key": "interval",
+              "value": "{{interval}}"
+            }
+          ]
+        },
+        "description": "Downloads SVG graph comparing gold and silver close prices."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('SVG content-type is returned', function () {",
+              "  pm.expect(pm.response.headers.get('Content-Type')).to.include('image/svg+xml');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "symbol",
+      "value": "HDFCBANK.NS"
+    },
+    {
+      "key": "sector",
+      "value": "banking"
+    },
+    {
+      "key": "period",
+      "value": "6mo"
+    },
+    {
+      "key": "interval",
+      "value": "1d"
+    }
+  ]
+}

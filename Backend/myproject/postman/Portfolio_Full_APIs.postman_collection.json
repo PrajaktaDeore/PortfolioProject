@@ -1,0 +1,408 @@
+{
+  "info": {
+    "_postman_id": "f8c5e8ac-3ba4-45c7-93ab-28abf90c8688",
+    "name": "Portfolio Full APIs",
+    "description": "Complete collection for stock, sector, portfolio, gold/silver and user signup endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Stocks - All Sector Stocks",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Stocks - Market Overview",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/market-overview/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "market-overview",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Stocks - Detail By Symbol",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/stock/{{symbol}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "stock",
+            "{{symbol}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Stocks CRUD - List",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/crud/stocks/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "crud",
+            "stocks",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Stocks CRUD - Add Stock",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"symbol\": \"{{new_symbol}}\",\n  \"name\": \"{{new_name}}\",\n  \"sector\": \"{{new_sector}}\",\n  \"price\": {{new_price}},\n  \"change_percent\": 0.0,\n  \"market_cap\": 0,\n  \"pe_ratio\": 0,\n  \"currency\": \"INR\",\n  \"exchange\": \"NSE\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/crud/stocks/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "crud",
+            "stocks",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Stocks CRUD - Edit Stock",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{edit_name}}\",\n  \"price\": {{edit_price}},\n  \"sector\": \"{{edit_sector}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/crud/stocks/{{stock_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "crud",
+            "stocks",
+            "{{stock_id}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Stocks CRUD - Delete Stock",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/crud/stocks/{{stock_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "crud",
+            "stocks",
+            "{{stock_id}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Commodities - Gold Silver Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/all-sector-stocks/gold-silver/?period={{period}}&interval={{interval}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "all-sector-stocks",
+            "gold-silver",
+            ""
+          ],
+          "query": [
+            {
+              "key": "period",
+              "value": "{{period}}"
+            },
+            {
+              "key": "interval",
+              "value": "{{interval}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Sector - Stocks By Sector",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/sector-stocks/sector-stocks/?sector={{sector}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "sector-stocks",
+            "sector-stocks",
+            ""
+          ],
+          "query": [
+            {
+              "key": "sector",
+              "value": "{{sector}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Portfolio - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{portfolio_name}}\",\n  \"user\": {{portfolio_user_id}}\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/sector-stocks/portfolios/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "sector-stocks",
+            "portfolios",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Portfolio - Update",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{portfolio_name}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/sector-stocks/portfolios/{{portfolio_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "sector-stocks",
+            "portfolios",
+            "{{portfolio_id}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Portfolio - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/sector-stocks/portfolios/{{portfolio_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "sector-stocks",
+            "portfolios",
+            "{{portfolio_id}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User - Sign Up",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"full_name\": \"{{full_name}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"phone\": \"{{phone}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/user/signup/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "user",
+            "signup",
+            ""
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "symbol",
+      "value": "HDFCBANK.NS"
+    },
+    {
+      "key": "stock_id",
+      "value": "1"
+    },
+    {
+      "key": "sector",
+      "value": "banking"
+    },
+    {
+      "key": "period",
+      "value": "5y"
+    },
+    {
+      "key": "interval",
+      "value": "1d"
+    },
+    {
+      "key": "new_symbol",
+      "value": "DEMO.NS"
+    },
+    {
+      "key": "new_name",
+      "value": "Demo Stock"
+    },
+    {
+      "key": "new_sector",
+      "value": "banking"
+    },
+    {
+      "key": "new_price",
+      "value": "100"
+    },
+    {
+      "key": "edit_name",
+      "value": "Demo Stock Updated"
+    },
+    {
+      "key": "edit_price",
+      "value": "120"
+    },
+    {
+      "key": "edit_sector",
+      "value": "banking"
+    },
+    {
+      "key": "portfolio_name",
+      "value": "My Portfolio"
+    },
+    {
+      "key": "portfolio_id",
+      "value": "1"
+    },
+    {
+      "key": "portfolio_user_id",
+      "value": "1"
+    },
+    {
+      "key": "full_name",
+      "value": "Demo User"
+    },
+    {
+      "key": "email",
+      "value": "demo.user@example.com"
+    },
+    {
+      "key": "password",
+      "value": "Demo@12345"
+    },
+    {
+      "key": "phone",
+      "value": "9999999999"
+    }
+  ]
+}

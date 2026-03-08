@@ -1,0 +1,100 @@
+.home-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.home-surface {
+  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-soft) 100%);
+  border: 1px solid var(--surface-border);
+}
+
+.home-hero {
+  background: 
+    radial-gradient(circle at 100% 0%, rgba(91, 110, 225, 0.22), transparent 45%),
+    radial-gradient(circle at 0% 100%, rgba(47, 191, 143, 0.14), transparent 55%),
+    linear-gradient(180deg, var(--surface) 0%, var(--surface-soft) 100%);
+  border: 1px solid var(--surface-border) !important;
+  border-radius: 24px !important;
+  padding: 2rem !important;
+}
+
+.home-hero h3 {
+  font-family: "Outfit", sans-serif;
+  font-weight: 700;
+  font-size: 2rem;
+  background: linear-gradient(135deg, rgba(226, 232, 240, 0.95) 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+
+.portfolio-guide-section h4 {
+  color: #eff6ff;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.guide-icon-box {
+  background: rgba(255, 255, 255, 0.03);
+  width: 80px;
+  height: 80px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  animation: float 4s ease-in-out infinite;
+}
+
+.portfolio-guide-section .card {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--surface-border) !important;
+  backdrop-filter: blur(10px);
+}
+
+.portfolio-guide-section .card:hover {
+  transform: translateY(-12px) scale(1.02);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+  border-color: var(--primary) !important;
+}
+
+.portfolio-guide-section .card:hover .guide-icon-box {
+  transform: scale(1.1) rotate(5deg);
+  background: rgba(255, 255, 255, 0.1);
+  animation-play-state: paused;
+}
+
+.clickable-guide-card {
+  cursor: pointer;
+}
+
+.clickable-guide-card h5 {
+  color: #eff6ff;
+  transition: color 0.3s ease;
+}
+
+.clickable-guide-card:hover h5 {
+  color: var(--primary);
+}
+
+
+.home-page .table thead th {
+  background: #15233a;
+}
+
+@media (max-width: 576px) {
+  .home-page {
+    gap: 0.75rem;
+  }
+}

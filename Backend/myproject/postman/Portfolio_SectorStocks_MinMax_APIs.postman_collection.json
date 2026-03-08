@@ -1,0 +1,124 @@
+{
+  "info": {
+    "_postman_id": "8e6c2ec5-a64f-47f4-a3c8-0418386b7532",
+    "name": "Portfolio Sector Stocks MinMax APIs",
+    "description": "Collection for SectorStocksView API with 1-year min/max fields.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Sector Stocks (Dynamic)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/sector-stocks/sector-stocks/?sector={{sector}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "sector-stocks",
+            "sector-stocks",
+            ""
+          ],
+          "query": [
+            {
+              "key": "sector",
+              "value": "{{sector}}"
+            }
+          ]
+        },
+        "description": "Fetches stocks for a sector. Each stock includes min_1y and max_1y."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has sector and data', function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property('sector');",
+              "  pm.expect(jsonData).to.have.property('data');",
+              "  pm.expect(jsonData.data).to.be.an('array');",
+              "});",
+              "",
+              "pm.test('Stock rows expose min_1y and max_1y keys', function () {",
+              "  const jsonData = pm.response.json();",
+              "  if (jsonData.data.length > 0) {",
+              "    pm.expect(jsonData.data[0]).to.have.property('min_1y');",
+              "    pm.expect(jsonData.data[0]).to.have.property('max_1y');",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Sector Stocks - Banking",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/sector-stocks/sector-stocks/?sector=banking",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "sector-stocks",
+            "sector-stocks",
+            ""
+          ],
+          "query": [
+            {
+              "key": "sector",
+              "value": "banking"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Sector Stocks - IT",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/sector-stocks/sector-stocks/?sector=it",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "sector-stocks",
+            "sector-stocks",
+            ""
+          ],
+          "query": [
+            {
+              "key": "sector",
+              "value": "it"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "sector",
+      "value": "banking"
+    }
+  ]
+}

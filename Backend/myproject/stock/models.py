@@ -22,6 +22,8 @@ class Stock(models.Model):
         blank=True,
     )
     price = models.DecimalField(max_digits=20, decimal_places=4, null=True, blank=True)
+    min_1y = models.DecimalField(max_digits=20, decimal_places=4, null=True, blank=True)
+    max_1y = models.DecimalField(max_digits=20, decimal_places=4, null=True, blank=True)
     change_percent = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
     market_cap = models.BigIntegerField(null=True, blank=True)
     pe_ratio = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
