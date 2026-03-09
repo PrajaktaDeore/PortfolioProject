@@ -274,7 +274,7 @@ function Home() {
 	                  </div>
 	                </Link>
 
-	                <Link
+                <Link
                     to="/portfolio"
                     className={`home-action-tile text-decoration-none home-action-primary ${!loggedIn ? 'home-action-locked' : ''}`}
                     onClick={(e) => guardAction(e, true, '/portfolio', 'Portfolio')}
@@ -287,14 +287,13 @@ function Home() {
                       <path d="M9 11h6" />
                     </svg>
                   </div>
-	                  <div className="home-action-body">
-	                    <div className="home-action-label">Portfolio</div>
-	                    <div className="home-action-sub">Performance & risk analytics</div>
-	                  </div>
-                    {!loggedIn ? <span className="home-action-lock">Login</span> : null}
-	                </Link>
+                  <div className="home-action-body">
+                    <div className="home-action-label">Portfolio</div>
+                    <div className="home-action-sub">Performance & risk analytics</div>
+                  </div>
+                </Link>
 
-	                <Link
+                <Link
                     to="/timeseries"
                     className={`home-action-tile text-decoration-none ${!loggedIn ? 'home-action-locked' : ''}`}
                     onClick={(e) => guardAction(e, true, '/timeseries', 'Timeseries')}
@@ -307,13 +306,12 @@ function Home() {
                       <path d="M18 16v-6" />
                     </svg>
                   </div>
-	                  <div className="home-action-body">
-	                    <div className="home-action-label">Timeseries</div>
-	                    <div className="home-action-sub">Forecasting & price history</div>
-	                  </div>
-                    {!loggedIn ? <span className="home-action-lock">Login</span> : null}
-	                </Link>
-	              </div>
+                  <div className="home-action-body">
+                    <div className="home-action-label">Timeseries</div>
+                    <div className="home-action-sub">Forecasting & price history</div>
+                  </div>
+                </Link>
+              </div>
 
                 {loginPrompt ? (
                   <div className="home-login-callout mt-3">
@@ -323,9 +321,6 @@ function Home() {
                       </div>
                       <div className="home-login-sub">Please log in to continue.</div>
                     </div>
-                    <button type="button" className="btn btn-sm btn-primary" onClick={() => openLoginFor(loginPrompt.path)}>
-                      Login
-                    </button>
                   </div>
                 ) : null}
 	            </div>

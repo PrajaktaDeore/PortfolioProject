@@ -1,0 +1,42 @@
+sequenceDiagram
+  autonumber
+  actor User
+  participant Browser as Browser (React UI)
+  participant LS as localStorage
+  participant API as Django API (Backend)
+  participant ANA as Client Analytics (PCA/KMeans)
+
+  User->>Browser: Open /home
+  Browser->>API: GET /all-sector-stocks/timeseries/bitcoin/?symbol=^NSEI&period=3mo&interval=1d
+  API-->>Browser: 200 {history...}
+  Browser-->>User: Render NIFTY graph (click opens modal)
+
+  User->>Browser: Navigate /sectors
+  Browser->>API: GET /all-sector-stocks/
+  API-->>Browser: 200 {data:[{sector,...}]}
+  Browser-->>User: Render sector pills + insights
+
+  User->>Browser: Open /stock/:sector
+  Browser->>API: GET /all-sector-stocks/crud/stocks/?sector=<sector>
+  API-->>Browser: 200 [{symbol,price,...}]
+  Browser-->>User: Render sector stocks + filters
+
+  User->>Browser: Login
+  Browser->>API: POST /user/login/ (or fallback candidates)
+  API-->>Browser: 200 {token/id/...}
+  Browser->>LS: set current_user
+  Browser-->>User: Redirect to requested page
+
+  User->>Browser: Add To Portfolio
+  Browser->>LS: update user_portfolio_stocks_v1
+  Browser-->>User: Show "Added" + CTA to Portfolio
+
+  User->>Browser: Open /portfolio
+  Browser->>LS: read user_portfolio_stocks_v1
+  Browser->>ANA: compute PCA projection + KMeans clusters
+  ANA-->>Browser: {points, clusters}
+  Browser-->>User: Render charts + Download CSV buttons
+
+  User->>Browser: Download CSV (PCA/Clusters)
+  Browser-->>User: Save file (client-side Blob)
+

@@ -1,18 +1,111 @@
-# React + Vite
+# TradeAnalytics - Portfolio & Stock Analytics Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+TradeAnalytics is a full-stack dashboard for exploring sector-wise stocks, tracking a personal portfolio, and running time-series forecasting. The frontend is a React (Vite) app and the backend is a Django REST API that fetches live market data from Yahoo Finance.
 
-Currently, two official plugins are available:
+## Project Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Frontend** (`Frontend/my-react-app`): UI for sectors, stocks, portfolio analytics, and time-series pages.
+- **Backend** (`Backend/myproject`): Django + DRF API for stock/sector data, auth, portfolio CRUD, and forecasting endpoints.
 
-## React Compiler
+## Features
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+- **Sector explorer**: Browse sectors (Banking, IT, Pharma, FMCG, Auto, Energy, Metals) and view metrics (price, 52W high/low, market cap, P/E, etc.).
+- **Stock search & sorting**: Filter by symbol/name and sort by market cap, price, change %, P/E, etc.
+- **Portfolio (login-gated UI)**: Add stocks to a portfolio and view analytics/visualizations (including PCA projection).
+- **Timeseries + forecasting**: Fetch historical OHLC and run forecasts (ARIMA supported end-to-end; additional models exist in the backend).
+- **Market/Index charts**: Home page shows index movement (for example, NIFTY) using the backend timeseries endpoint.
+- **Gold vs Silver correlation (5Y)**: Generate a correlation graph and download aligned data as CSV.
+- **Authentication**: Signup and login via Django endpoints; frontend stores session state in `localStorage`.
 
-Note: This will impact Vite dev & build performances.
+## Technologies Used
 
-## Expanding the ESLint configuration
+### Frontend
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React + Vite
+- React Router
+- Bootstrap 5 (CDN)
+- ESLint
+
+### Backend
+
+- Python
+- Django
+- Django REST Framework (DRF)
+- `django-cors-headers`
+- `yfinance` (market data)
+- `statsmodels` (ARIMA / Exponential Smoothing forecasting)
+- `numpy` + `tensorflow` (optional, for the RNN forecasting model)
+- SQLite (default dev database)
+
+## Installation & Setup (Python + React)
+
+### 1) Backend (Python / Django)
+
+From the repository root:
+
+```bash
+cd Backend/myproject
+```
+
+Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+# Windows (PowerShell)
+.\.venv\Scripts\Activate.ps1
+```
+
+Install dependencies (minimum set to run the API):
+
+```bash
+pip install -U pip
+pip install django djangorestframework django-cors-headers yfinance statsmodels numpy
+```
+
+Optional (only if you want the RNN forecasting option on the backend):
+
+```bash
+pip install tensorflow
+```
+
+Run migrations and start the server:
+
+```bash
+python manage.py migrate
+python manage.py runserver
+```
+
+Backend runs at `http://127.0.0.1:8000` by default.
+
+### 2) Frontend (React / Vite)
+
+In a second terminal:
+
+```bash
+cd Frontend/my-react-app
+npm install
+npm run dev
+```
+
+Frontend runs at `http://localhost:5173` by default.
+
+#### API base URL configuration
+
+The frontend uses `VITE_API_BASE_URL` (defaults to `http://127.0.0.1:8000`). To change it, create `Frontend/my-react-app/.env`:
+
+```bash
+VITE_API_BASE_URL=http://127.0.0.1:8000
+```
+
+Then restart `npm run dev`.
+
+## Useful API Routes (Backend)
+
+- `GET /sector-stocks/sector-stocks/?sector=banking`
+- `GET /all-sector-stocks/`
+- `GET /all-sector-stocks/stock/<symbol>/`
+- `GET /all-sector-stocks/market-overview/`
+- `GET /all-sector-stocks/timeseries/bitcoin/?symbol=BTC-USD&period=1y&interval=1d`
+- `GET /all-sector-stocks/timeseries/arima/?symbol=BTC-USD&period=1y&interval=1d&days=7&model=arima`
+- `POST /user/signup/`
+- `POST /user/login/`

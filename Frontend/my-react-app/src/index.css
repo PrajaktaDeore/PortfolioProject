@@ -376,6 +376,12 @@ svg rect[fill="#0ea5e9"] {
   color: var(--text-main);
 }
 
+.form-control::placeholder,
+.form-select::placeholder {
+  color: rgba(148, 163, 184, 0.85);
+  opacity: 1;
+}
+
 .form-control:focus,
 .form-select:focus {
   border-color: rgba(91, 110, 225, 0.65);

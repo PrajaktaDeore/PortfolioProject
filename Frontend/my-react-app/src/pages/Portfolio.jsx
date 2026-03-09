@@ -187,7 +187,6 @@ function Portfolio() {
               Select a sector to view insights and what to track.
             </p>
           </div>
-          <span className="badge text-bg-primary align-self-center">{sortedSectorNames.length} sectors</span>
         </div>
 
         <div className="sectors-pills mt-3">

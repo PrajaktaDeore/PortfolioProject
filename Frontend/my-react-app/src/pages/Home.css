@@ -196,23 +196,6 @@
   margin-top: 2px;
 }
 
-.home-action-locked {
-  position: relative;
-}
-
-.home-action-lock {
-  margin-left: auto;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  background: rgba(5, 11, 31, 0.18);
-  color: rgba(226, 232, 240, 0.85);
-  font-weight: 800;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .home-login-callout {
   display: flex;
   align-items: center;
