@@ -1,4 +1,5 @@
-import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import Timeseries from "./pages/timeseries";
 import Home from "./pages/Home";
@@ -71,7 +72,23 @@ function TimeseriesGate() {
 
 function App() {
   const navigate = useNavigate();
-  const loggedIn = isLoggedIn();
+  const location = useLocation();
+  const [loggedIn, setLoggedIn] = useState(() => isLoggedIn());
+
+  useEffect(() => {
+    setLoggedIn(isLoggedIn());
+  }, [location.key]);
+
+  useEffect(() => {
+    function onStorage(e) {
+      if (!e || e.key === "current_user") {
+        setLoggedIn(isLoggedIn());
+      }
+    }
+
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   function handleLogout() {
     try {
@@ -79,6 +96,7 @@ function App() {
     } catch {
       // ignore
     }
+    setLoggedIn(false);
     navigate("/home", { replace: true });
   }
 

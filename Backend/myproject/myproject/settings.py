@@ -10,7 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import copy
 from pathlib import Path
+from django.utils.log import DEFAULT_LOGGING
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -129,3 +131,23 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+def skip_broken_pipe(record):
+    return 'Broken pipe' not in record.getMessage()
+
+
+if DEBUG:
+    LOGGING = copy.deepcopy(DEFAULT_LOGGING)
+    LOGGING.setdefault('filters', {})['skip_broken_pipe'] = {
+        '()': 'django.utils.log.CallbackFilter',
+        'callback': skip_broken_pipe,
+    }
+
+    for handler_name in ('console', 'django.server'):
+        handler = LOGGING.get('handlers', {}).get(handler_name)
+        if not handler:
+            continue
+        handler.setdefault('filters', [])
+        if 'skip_broken_pipe' not in handler['filters']:
+            handler['filters'].append('skip_broken_pipe')

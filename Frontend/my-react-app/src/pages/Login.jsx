@@ -133,7 +133,11 @@ function Login() {
               </div>
             ) : null}
             <p className="text-secondary small mt-3 mb-0">
-              New user? Click Sign Up to fill the registration form.
+              New user?{' '}
+              <Link to="/signup" className="app-link">
+                Create an account
+              </Link>
+              .
             </p>
           </form>
         </div>

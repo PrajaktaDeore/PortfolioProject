@@ -283,6 +283,18 @@ svg rect[fill="#0ea5e9"] {
   outline-offset: 2px;
 }
 
+.app-link {
+  color: rgba(167, 139, 250, 0.95);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.app-link:hover {
+  color: rgba(91, 110, 225, 0.95);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--surface-border) !important;

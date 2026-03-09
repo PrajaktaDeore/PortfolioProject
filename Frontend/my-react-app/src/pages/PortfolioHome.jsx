@@ -482,6 +482,35 @@ function toPeRatioCsv(rows) {
   return lines.join('\n')
 }
 
+function toClusterCsv(clusterResult, xHeader, yHeader) {
+  if (!clusterResult || !Array.isArray(clusterResult.points) || clusterResult.points.length === 0) return ''
+  const safeX = xHeader || 'x'
+  const safeY = yHeader || 'y'
+
+  const lines = [
+    `symbol,${safeX},${safeY},cluster`,
+    ...clusterResult.points.map((p) => `${p.symbol || ''},${p.x},${p.y},${p.cluster}`),
+    '',
+    `k,${clusterResult.k}`,
+  ]
+
+  return lines.join('\n')
+}
+
+function toPcaCsv(pcaProjection) {
+  if (!pcaProjection || !Array.isArray(pcaProjection.points) || pcaProjection.points.length === 0) return ''
+
+  const lines = [
+    'symbol,pc1,pc2',
+    ...pcaProjection.points.map((p) => `${p.symbol || ''},${p.pc1},${p.pc2}`),
+    '',
+    `explained_variance_pc1_percent,${pcaProjection.explainedVariancePc1}`,
+    `explained_variance_pc2_percent,${pcaProjection.explainedVariancePc2}`,
+  ]
+
+  return lines.join('\n')
+}
+
 function downloadTextFile(content, fileName, mimeType) {
   const blob = new Blob([content], { type: mimeType })
   const url = URL.createObjectURL(blob)
@@ -544,6 +573,24 @@ function PortfolioHome() {
     if (!peRatioRows.length) return
     const csvContent = toPeRatioCsv(peRatioRows)
     downloadTextFile(csvContent, 'portfolio_pe_ratio_analysis.csv', 'text/csv;charset=utf-8')
+  }
+
+  function handlePeDiscountClustersCsvDownload() {
+    if (!peDiscountClusters || !peDiscountClusters.points.length) return
+    const csvContent = toClusterCsv(peDiscountClusters, 'pe_ratio', 'discount_percent')
+    downloadTextFile(csvContent, 'portfolio_clusters_pe_discount.csv', 'text/csv;charset=utf-8')
+  }
+
+  function handlePeOpportunityClustersCsvDownload() {
+    if (!peOpportunityClusters || !peOpportunityClusters.points.length) return
+    const csvContent = toClusterCsv(peOpportunityClusters, 'pe_ratio', 'opportunity_score')
+    downloadTextFile(csvContent, 'portfolio_clusters_pe_opportunity.csv', 'text/csv;charset=utf-8')
+  }
+
+  function handlePcaCsvDownload() {
+    if (!pcaProjection || !pcaProjection.points.length) return
+    const csvContent = toPcaCsv(pcaProjection)
+    downloadTextFile(csvContent, 'portfolio_pca_projection.csv', 'text/csv;charset=utf-8')
   }
 
   async function handleGoldSilverCorrelationDownload() {
@@ -1399,9 +1446,29 @@ function PortfolioHome() {
                   )}
                 </div>
                   </div>
-                  <div className="col-12 col-xl-6">
-                    <div className="chart-panel p-3 h-100">
-                      <h6 className="mb-3">Cluster Analysis</h6>
+	                  <div className="col-12 col-xl-6">
+	                    <div className="chart-panel p-3 h-100">
+	                      <div className="d-flex justify-content-between align-items-center gap-2 mb-3 flex-wrap">
+	                        <h6 className="mb-0">Cluster Analysis</h6>
+	                        <div className="d-flex gap-2 flex-wrap">
+	                          <button
+	                            type="button"
+	                            className="btn btn-sm btn-outline-primary"
+	                            onClick={handlePeDiscountClustersCsvDownload}
+	                            disabled={!peDiscountClusters || peDiscountClusters.points.length < 2}
+	                          >
+	                            Download Discount CSV
+	                          </button>
+	                          <button
+	                            type="button"
+	                            className="btn btn-sm btn-outline-primary"
+	                            onClick={handlePeOpportunityClustersCsvDownload}
+	                            disabled={!peOpportunityClusters || peOpportunityClusters.points.length < 2}
+	                          >
+	                            Download Opportunity CSV
+	                          </button>
+	                        </div>
+	                      </div>
 
                       <div className="row g-3">
                         <div className="col-12 col-lg-6">
@@ -1564,9 +1631,19 @@ function PortfolioHome() {
                       </div>
                 </div>
                   </div>
-                  <div className="col-12 col-xl-6">
-                    <div className="chart-panel p-3 h-100">
-                      <h6 className="mb-2">PCA Projection (Stocks)</h6>
+	                  <div className="col-12 col-xl-6">
+	                    <div className="chart-panel p-3 h-100">
+	                      <div className="d-flex justify-content-between align-items-center gap-2 mb-2 flex-wrap">
+	                        <h6 className="mb-0">PCA Projection (Stocks)</h6>
+	                        <button
+	                          type="button"
+	                          className="btn btn-sm btn-outline-primary"
+	                          onClick={handlePcaCsvDownload}
+	                          disabled={!pcaProjection || pcaProjection.points.length < 2}
+	                        >
+	                          Download CSV
+	                        </button>
+	                      </div>
                   {!pcaProjection || !pcaChart || pcaProjection.points.length < 2 ? (
                     <p className="text-secondary mb-0">
                       Need at least 2 stocks with valid <code>price</code>, <code>min_1y</code>, and <code>max_1y</code>.

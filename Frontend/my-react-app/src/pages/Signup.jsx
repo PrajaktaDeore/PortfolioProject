@@ -110,7 +110,7 @@ function Signup() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
-            <button type="submit" className="btn btn-success" disabled={loading}>
+            <button type="submit" className="btn btn-primary" disabled={loading}>
               {loading ? 'Creating...' : 'Create Account'}
             </button>
             {message ? <p className="small mt-3 mb-0 text-secondary">{message}</p> : null}
