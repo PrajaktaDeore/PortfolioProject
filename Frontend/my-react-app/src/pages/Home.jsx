@@ -4,6 +4,7 @@ import './Home.css'
 import ChartModal from '../components/ChartModal'
 import { useChartModal } from '../components/useChartModal'
 import { isLoggedIn as checkLoggedIn } from '../utils/auth'
+import { readPortfolioRows } from '../utils/portfolioStorage'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
  
@@ -87,13 +88,8 @@ function Home() {
   const trackPerformancePath = loggedIn ? '/portfolio' : '/login'
   const [loginPrompt, setLoginPrompt] = useState(null)
   const portfolioCount = useMemo(() => {
-    try {
-      const raw = localStorage.getItem('user_portfolio_stocks_v1')
-      const arr = raw ? JSON.parse(raw) : []
-      return Array.isArray(arr) ? arr.length : 0
-    } catch {
-      return 0
-    }
+    if (!loggedIn) return 0
+    return readPortfolioRows('user_portfolio_stocks_v1').length
   }, [loggedIn])
   const niftySummary = useMemo(() => {
     const points = (Array.isArray(niftyHistory) ? niftyHistory : [])
@@ -321,6 +317,13 @@ function Home() {
                       </div>
                       <div className="home-login-sub">Please log in to continue.</div>
                     </div>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-primary"
+                      onClick={() => openLoginFor(loginPrompt.path)}
+                    >
+                      Login
+                    </button>
                   </div>
                 ) : null}
 	            </div>

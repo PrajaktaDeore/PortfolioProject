@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { isLoggedIn } from '../utils/auth'
+import { normalizePortfolioSymbol, readPortfolioRows, writePortfolioRows } from '../utils/portfolioStorage'
+import QuantityModal from '../components/QuantityModal'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 const USER_PORTFOLIO_KEY = 'user_portfolio_stocks_v1'
@@ -46,6 +48,9 @@ function SectorStocks() {
   const [showGoToPortfolio, setShowGoToPortfolio] = useState(false)
   const [showLoginToAdd, setShowLoginToAdd] = useState(false)
   const [portfolioAlertClass, setPortfolioAlertClass] = useState('alert-success')
+  const [quantityModalOpen, setQuantityModalOpen] = useState(false)
+  const [quantityModalSymbol, setQuantityModalSymbol] = useState('')
+  const [pendingPortfolioItem, setPendingPortfolioItem] = useState(null)
   // Session-only UI state: resets when user navigates away and returns.
   const [sessionAddedSymbols, setSessionAddedSymbols] = useState(new Set())
   const [editingStockId, setEditingStockId] = useState(null)
@@ -126,7 +131,7 @@ function SectorStocks() {
   }
 
   function handleAddToPortfolio(item) {
-    const symbolText = String(item?.symbol || '').trim().toUpperCase()
+    const symbolText = normalizePortfolioSymbol(item?.symbol)
     if (!symbolText) {
       setCrudMessage('Cannot add stock without a valid symbol.')
       return
@@ -149,56 +154,16 @@ function SectorStocks() {
       return
     }
 
-    let current = []
-    try {
-      const raw = localStorage.getItem(USER_PORTFOLIO_KEY)
-      current = raw ? JSON.parse(raw) : []
-      if (!Array.isArray(current)) current = []
-    } catch {
-      current = []
-    }
+    const current = readPortfolioRows(USER_PORTFOLIO_KEY)
 
     const existing = current.some(
-      (row) => String(row?.symbol || '').trim().toUpperCase() === symbolText,
+      (row) => normalizePortfolioSymbol(row?.symbol) === symbolText,
     )
 
     if (!existing) {
-      const next = [
-        {
-          symbol: symbolText,
-          name: item?.name || null,
-          sector: item?.sector || normalizedSectorName,
-          price: item?.price ?? null,
-          pe_ratio: item?.pe_ratio ?? null,
-          min_1y: item?.min_1y ?? null,
-          max_1y: item?.max_1y ?? null,
-          change_percent: item?.change_percent ?? null,
-          market_cap: item?.market_cap ?? null,
-          added_at: new Date().toISOString(),
-        },
-        ...current,
-      ]
-      try {
-        localStorage.setItem(USER_PORTFOLIO_KEY, JSON.stringify(next))
-        // Mark as added for this visit so button flips to "Added".
-        setSessionAddedSymbols((prev) => {
-          const updated = new Set(prev)
-          updated.add(symbolText)
-          return updated
-        })
-        setPortfolioAlertClass('alert-success')
-        setPortfolioMessage(`${symbolText} added to portfolio.`)
-        setShowGoToPortfolio(true)
-        try {
-          window.scrollTo({ top: 0, behavior: 'smooth' })
-        } catch {
-          // Ignore scroll failures (e.g., older browsers / restricted environments).
-        }
-      } catch {
-        setPortfolioAlertClass('alert-danger')
-        setPortfolioMessage('Unable to save to portfolio. Please check browser storage settings.')
-        setShowGoToPortfolio(false)
-      }
+      setPendingPortfolioItem(item)
+      setQuantityModalSymbol(symbolText)
+      setQuantityModalOpen(true)
       return
     }
 
@@ -214,6 +179,75 @@ function SectorStocks() {
 
   function handleGoToPortfolio() {
     navigate('/portfolio', { state: { message: portfolioMessage || 'Opening portfolio.' } })
+  }
+
+  function handleQuantityCancel() {
+    setQuantityModalOpen(false)
+    setQuantityModalSymbol('')
+    setPendingPortfolioItem(null)
+  }
+
+  function handleQuantityConfirm(quantity) {
+    const item = pendingPortfolioItem
+    const symbolText = normalizePortfolioSymbol(quantityModalSymbol || item?.symbol)
+
+    handleQuantityCancel()
+
+    if (!symbolText) return
+    if (!Number.isFinite(Number(quantity)) || Number(quantity) <= 0) {
+      setPortfolioAlertClass('alert-danger')
+      setPortfolioMessage('Quantity must be a positive number.')
+      setShowGoToPortfolio(false)
+      return
+    }
+
+    const current = readPortfolioRows(USER_PORTFOLIO_KEY)
+    const existing = current.some((row) => normalizePortfolioSymbol(row?.symbol) === symbolText)
+    if (existing) {
+      setPortfolioAlertClass('alert-info')
+      setPortfolioMessage(`${symbolText} is already in portfolio.`)
+      setShowGoToPortfolio(true)
+      return
+    }
+
+    const next = [
+      {
+        symbol: symbolText,
+        name: item?.name || null,
+        sector: item?.sector || normalizedSectorName,
+        price: item?.price ?? null,
+        pe_ratio: item?.pe_ratio ?? null,
+        min_1y: item?.min_1y ?? null,
+        max_1y: item?.max_1y ?? null,
+        change_percent: item?.change_percent ?? null,
+        market_cap: item?.market_cap ?? null,
+        quantity: Number(quantity),
+        added_at: new Date().toISOString(),
+      },
+      ...current,
+    ]
+
+    const didWrite = writePortfolioRows(next, USER_PORTFOLIO_KEY)
+    if (!didWrite) {
+      setPortfolioAlertClass('alert-danger')
+      setPortfolioMessage('Unable to save to portfolio. Please check browser storage settings.')
+      setShowGoToPortfolio(false)
+      return
+    }
+
+    setSessionAddedSymbols((prev) => {
+      const updated = new Set(prev)
+      updated.add(symbolText)
+      return updated
+    })
+    setPortfolioAlertClass('alert-success')
+    setPortfolioMessage(`${symbolText} added to portfolio (Qty: ${Number(quantity)}).`)
+    setShowGoToPortfolio(true)
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch {
+      // Ignore scroll failures.
+    }
   }
 
   function handleLoginForPortfolio() {
@@ -419,6 +453,14 @@ function SectorStocks() {
 
   return (
     <div className="card border-0 shadow-sm animate-fade-in">
+      <QuantityModal
+        key={`${quantityModalSymbol}-${quantityModalOpen ? 'open' : 'closed'}`}
+        open={quantityModalOpen}
+        symbol={quantityModalSymbol}
+        defaultQuantity={1}
+        onCancel={handleQuantityCancel}
+        onConfirm={handleQuantityConfirm}
+      />
       <div className="card-header bg-white d-flex justify-content-between align-items-center">
         <div>
           <h4 className="mb-0">{sectorTitle} Stocks</h4>

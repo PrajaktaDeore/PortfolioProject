@@ -11,7 +11,7 @@ TradeAnalytics is a full-stack dashboard for exploring sector-wise stocks, track
 
 - **Sector explorer**: Browse sectors (Banking, IT, Pharma, FMCG, Auto, Energy, Metals) and view metrics (price, 52W high/low, market cap, P/E, etc.).
 - **Stock search & sorting**: Filter by symbol/name and sort by market cap, price, change %, P/E, etc.
-- **Portfolio (login-gated UI)**: Add stocks to a portfolio and view analytics/visualizations (including PCA projection).
+- **Portfolio (login-gated UI)**: Add/remove stocks in a portfolio and view analytics/visualizations (including PCA projection).
 - **Timeseries + forecasting**: Fetch historical OHLC and run forecasts (ARIMA supported end-to-end; additional models exist in the backend).
 - **Market/Index charts**: Home page shows index movement (for example, NIFTY) using the backend timeseries endpoint.
 - **Gold vs Silver correlation (5Y)**: Generate a correlation graph and download aligned data as CSV.

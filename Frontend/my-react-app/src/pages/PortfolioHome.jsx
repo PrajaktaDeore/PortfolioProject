@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import ChartModal from '../components/ChartModal'
 import { useChartModal } from '../components/useChartModal'
+import { normalizePortfolioSymbol, readPortfolioRows, writePortfolioRows } from '../utils/portfolioStorage'
 
 const USER_PORTFOLIO_KEY = 'user_portfolio_stocks_v1'
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
@@ -664,49 +665,59 @@ function PortfolioHome() {
     }
   }
 
+  function handleRemoveFromPortfolio(symbol) {
+    const symbolText = normalizePortfolioSymbol(symbol)
+    if (!symbolText) return
+
+    const ok = typeof window === 'undefined' ? true : window.confirm(`Remove ${symbolText} from your portfolio?`)
+    if (!ok) return
+
+    setStocks((prev) => {
+      const next = (Array.isArray(prev) ? prev : []).filter(
+        (row) => normalizePortfolioSymbol(typeof row === 'string' ? row : row?.symbol) !== symbolText,
+      )
+      writePortfolioRows(next, USER_PORTFOLIO_KEY)
+      return next
+    })
+  }
+
   useEffect(() => {
     async function loadPortfolioStocks() {
-      let localRows = []
+      const localRows = readPortfolioRows(USER_PORTFOLIO_KEY).map((row) => ({
+        ...row,
+        quantity: row?.quantity ?? 1,
+      }))
+
+      if (!localRows.length) {
+        setStocks([])
+        return
+      }
+
       try {
-        const raw = localStorage.getItem(USER_PORTFOLIO_KEY)
-        const parsed = raw ? JSON.parse(raw) : []
-        localRows = Array.isArray(parsed) ? parsed : []
-        if (!localRows.length) {
-          setStocks([])
-          return
-        }
+        const response = await fetch(`${API_BASE_URL}/all-sector-stocks/crud/stocks/`, { method: 'GET' })
+        const result = await response.json().catch(() => ({}))
+        const apiRows = response.ok && Array.isArray(result?.data) ? result.data : []
+        const bySymbol = new Map(apiRows.map((row) => [normalizePortfolioSymbol(row?.symbol), row]))
 
-        try {
-          const response = await fetch(`${API_BASE_URL}/all-sector-stocks/crud/stocks/`, { method: 'GET' })
-          const result = await response.json().catch(() => ({}))
-          const apiRows = response.ok && Array.isArray(result?.data) ? result.data : []
-          const bySymbol = new Map(
-            apiRows.map((row) => [String(row?.symbol || '').toUpperCase(), row]),
-          )
+        const merged = localRows.map((row) => {
+          const symbol = normalizePortfolioSymbol(row?.symbol)
+          const apiMatch = bySymbol.get(symbol) || {}
+          return {
+            ...apiMatch,
+            ...row,
+            pe_ratio: row?.pe_ratio ?? apiMatch?.pe_ratio ?? null,
+            min_1y: row?.min_1y ?? apiMatch?.min_1y ?? null,
+            max_1y: row?.max_1y ?? apiMatch?.max_1y ?? null,
+            price: row?.price ?? apiMatch?.price ?? null,
+            quantity: row?.quantity ?? apiMatch?.quantity ?? 1,
+            symbol: symbol || normalizePortfolioSymbol(apiMatch?.symbol),
+          }
+        })
 
-          const merged = localRows.map((row) => {
-            const symbol = String(row?.symbol || '').toUpperCase()
-            const apiMatch = bySymbol.get(symbol) || {}
-            return {
-              ...apiMatch,
-              ...row,
-              pe_ratio: row?.pe_ratio ?? apiMatch?.pe_ratio ?? null,
-              min_1y: row?.min_1y ?? apiMatch?.min_1y ?? null,
-              max_1y: row?.max_1y ?? apiMatch?.max_1y ?? null,
-              price: row?.price ?? apiMatch?.price ?? null,
-              symbol: row?.symbol || apiMatch?.symbol || symbol,
-            }
-          })
-
-          setStocks(merged)
-          localStorage.setItem(USER_PORTFOLIO_KEY, JSON.stringify(merged))
-          return
-        } catch {
-          // Fall back to locally saved portfolio data if API merge fails.
-          setStocks(localRows)
-          return
-        }
+        setStocks(merged)
+        writePortfolioRows(merged, USER_PORTFOLIO_KEY)
       } catch {
+        // Fall back to locally saved portfolio data if API merge fails.
         setStocks(localRows)
       }
     }
@@ -973,12 +984,14 @@ function PortfolioHome() {
                         <th>Symbol</th>
                         <th>Name</th>
                         <th>Sector</th>
+                        <th>Qty</th>
                         <th>Price</th>
                         <th>Min (1Y)</th>
                         <th>Max (1Y)</th>
                         <th>Change</th>
                         <th>Market Cap</th>
                         <th>P/E Ratio</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -987,12 +1000,23 @@ function PortfolioHome() {
                           <td>{stock.symbol || '-'}</td>
                           <td>{stock.name || '-'}</td>
                           <td>{stock.sector || '-'}</td>
+                          <td>{toNumber(stock.quantity) === null ? '-' : stock.quantity}</td>
                           <td>{formatPrice(stock.price)}</td>
                           <td>{formatPrice(stock.min_1y)}</td>
                           <td>{formatPrice(stock.max_1y)}</td>
                           <td>{formatPercent(stock.change_percent)}</td>
                           <td>{formatMarketCap(stock.market_cap)}</td>
                           <td>{toNumber(stock.pe_ratio) === null ? '-' : Number(stock.pe_ratio).toFixed(2)}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => handleRemoveFromPortfolio(stock?.symbol)}
+                              disabled={!stock?.symbol}
+                            >
+                              Remove
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
