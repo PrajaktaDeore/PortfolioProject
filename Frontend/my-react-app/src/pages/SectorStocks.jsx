@@ -27,6 +27,11 @@ function formatValue(value) {
   return value === null || value === undefined || value === '' ? '-' : value
 }
 
+function toNumber(value) {
+  const num = Number(value)
+  return Number.isFinite(num) ? num : null
+}
+
 function SectorStocks() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -48,6 +53,8 @@ function SectorStocks() {
   const [formName, setFormName] = useState('')
   const [formPrice, setFormPrice] = useState('')
   const [selectedStock, setSelectedStock] = useState(null)
+  const [query, setQuery] = useState('')
+  const [sortBy, setSortBy] = useState('mcap_desc')
   const normalizedSectorName = useMemo(
     () =>
       decodeURIComponent(sectorName || location.state?.sectorName || 'banking')
@@ -55,6 +62,54 @@ function SectorStocks() {
         .trim(),
     [sectorName, location.state?.sectorName],
   )
+  const sectorTitle = useMemo(() => {
+    const text = String(normalizedSectorName || '').trim()
+    if (!text) return 'Sector'
+    return text.charAt(0).toUpperCase() + text.slice(1)
+  }, [normalizedSectorName])
+
+  const stockStats = useMemo(() => {
+    const total = stocks.length
+    const changes = stocks.map((row) => toNumber(row?.change_percent)).filter((v) => v !== null)
+    const avgChange = changes.length ? changes.reduce((sum, v) => sum + v, 0) / changes.length : null
+    const gainers = stocks.filter((row) => (toNumber(row?.change_percent) ?? 0) > 0).length
+    const losers = stocks.filter((row) => (toNumber(row?.change_percent) ?? 0) < 0).length
+    const topGainer =
+      [...stocks]
+        .filter((row) => toNumber(row?.change_percent) !== null)
+        .sort((a, b) => (toNumber(b.change_percent) ?? -Infinity) - (toNumber(a.change_percent) ?? -Infinity))[0] ||
+      null
+    const biggest =
+      [...stocks]
+        .filter((row) => toNumber(row?.market_cap) !== null)
+        .sort((a, b) => (toNumber(b.market_cap) ?? -Infinity) - (toNumber(a.market_cap) ?? -Infinity))[0] || null
+
+    return { total, avgChange, gainers, losers, topGainer, biggest }
+  }, [stocks])
+
+  const visibleStocks = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    let rows = Array.isArray(stocks) ? stocks : []
+
+    if (q) {
+      rows = rows.filter((row) => {
+        const symbol = String(row?.symbol || '').toLowerCase()
+        const name = String(row?.name || '').toLowerCase()
+        return symbol.includes(q) || name.includes(q)
+      })
+    }
+
+    const sorted = [...rows]
+    const sorters = {
+      mcap_desc: (a, b) => (toNumber(b.market_cap) ?? -Infinity) - (toNumber(a.market_cap) ?? -Infinity),
+      change_desc: (a, b) => (toNumber(b.change_percent) ?? -Infinity) - (toNumber(a.change_percent) ?? -Infinity),
+      price_desc: (a, b) => (toNumber(b.price) ?? -Infinity) - (toNumber(a.price) ?? -Infinity),
+      pe_asc: (a, b) => (toNumber(a.pe_ratio) ?? Infinity) - (toNumber(b.pe_ratio) ?? Infinity),
+      symbol_asc: (a, b) => String(a?.symbol || '').localeCompare(String(b?.symbol || '')),
+    }
+    sorted.sort(sorters[sortBy] || sorters.mcap_desc)
+    return sorted
+  }, [stocks, query, sortBy])
 
   function resetForm() {
     setEditingStockId(null)
@@ -365,7 +420,10 @@ function SectorStocks() {
   return (
     <div className="card border-0 shadow-sm animate-fade-in">
       <div className="card-header bg-white d-flex justify-content-between align-items-center">
-        <h4 className="mb-0 text-capitalize">{normalizedSectorName} Stocks</h4>
+        <div>
+          <h4 className="mb-0">{sectorTitle} Stocks</h4>
+          <small className="text-secondary">Analytics snapshot for the selected sector.</small>
+        </div>
         <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => navigate('/sectors')}>
           Back to Sectors
         </button>
@@ -428,9 +486,9 @@ function SectorStocks() {
             You can browse sector stocks without logging in. Log in to add stocks to your portfolio.
           </div>
         )}
-        {portfolioMessage ? (
-          <div className={`alert ${portfolioAlertClass} py-2 d-flex justify-content-between align-items-center flex-wrap gap-2`}>
-            <span>{portfolioMessage}</span>
+	        {portfolioMessage ? (
+	          <div className={`alert ${portfolioAlertClass} py-2 d-flex justify-content-between align-items-center flex-wrap gap-2`}>
+	            <span>{portfolioMessage}</span>
             {showGoToPortfolio ? (
               <button type="button" className="btn btn-sm btn-outline-primary" onClick={handleGoToPortfolio}>
                 Go to Portfolio
@@ -442,32 +500,89 @@ function SectorStocks() {
               </button>
             ) : null}
           </div>
-        ) : null}
+	        ) : null}
 
-        {stocks.length === 0 ? (
-          <p className="text-secondary mb-0">No stocks found for this sector.</p>
-        ) : (
-          <div className="table-responsive">
-            <table className="table table-striped align-middle mb-0">
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>Name</th>
-                  <th>Price</th>
+          <div className="app-kpi-grid mb-3">
+            <div className="app-kpi-card">
+              <div className="app-kpi-label">Stocks</div>
+              <p className="app-kpi-value">{stockStats.total}</p>
+              <p className="app-kpi-sub">
+                {stockStats.gainers} gainers · {stockStats.losers} losers
+              </p>
+            </div>
+            <div className="app-kpi-card">
+              <div className="app-kpi-label">Avg Change</div>
+              <p className={`app-kpi-value ${Number(stockStats.avgChange) >= 0 ? 'text-success' : 'text-danger'}`}>
+                {formatPercent(stockStats.avgChange)}
+              </p>
+              <p className="app-kpi-sub">Across all stocks in sector</p>
+            </div>
+            <div className="app-kpi-card">
+              <div className="app-kpi-label">Top Gainer</div>
+              <p className="app-kpi-value">{stockStats.topGainer?.symbol || '-'}</p>
+              <p className="app-kpi-sub">
+                {stockStats.topGainer ? formatPercent(stockStats.topGainer.change_percent) : '-'}
+              </p>
+            </div>
+            <div className="app-kpi-card">
+              <div className="app-kpi-label">Largest</div>
+              <p className="app-kpi-value">{stockStats.biggest?.symbol || '-'}</p>
+              <p className="app-kpi-sub">
+                MCap: {stockStats.biggest ? formatMarketCap(stockStats.biggest.market_cap) : '-'}
+              </p>
+            </div>
+          </div>
+
+          <div className="row g-2 align-items-end mb-3">
+            <div className="col-12 col-md-7">
+              <label className="form-label mb-1">Search</label>
+              <input
+                type="text"
+                className="form-control"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search by symbol or company name..."
+              />
+            </div>
+            <div className="col-12 col-md-5">
+              <label className="form-label mb-1">Sort</label>
+              <select className="form-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                <option value="mcap_desc">Market cap (high → low)</option>
+                <option value="change_desc">Change % (high → low)</option>
+                <option value="price_desc">Price (high → low)</option>
+                <option value="pe_asc">P/E (low → high)</option>
+                <option value="symbol_asc">Symbol (A → Z)</option>
+              </select>
+            </div>
+          </div>
+
+	        {stocks.length === 0 ? (
+	          <p className="text-secondary mb-0">No stocks found for this sector.</p>
+	        ) : (
+            visibleStocks.length === 0 ? (
+              <p className="text-secondary mb-0">No results match your search.</p>
+            ) : (
+	            <div className="table-responsive">
+	              <table className="table table-striped table-hover align-middle mb-0">
+	              <thead>
+	                <tr>
+	                  <th>Symbol</th>
+	                  <th>Name</th>
+	                  <th>Price</th>
                   <th>Min</th>
                   <th>Max</th>
                   <th>Change</th>
                   <th>Market Cap</th>
                   <th>Actions</th>
                 </tr>
-              </thead>
-              <tbody>
-                {stocks.map((stock) => (
-                  <tr key={stock.id || stock.symbol}>
-                    <td>{stock.symbol}</td>
-                    <td>{stock.name || '-'}</td>
-                    <td>{formatPrice(stock.price)}</td>
-                    <td>{formatPrice(stock.min_1y)}</td>
+	              </thead>
+	              <tbody>
+	                {visibleStocks.map((stock) => (
+	                  <tr key={stock.id || stock.symbol}>
+	                    <td>{stock.symbol}</td>
+	                    <td>{stock.name || '-'}</td>
+	                    <td>{formatPrice(stock.price)}</td>
+	                    <td>{formatPrice(stock.min_1y)}</td>
                     <td>{formatPrice(stock.max_1y)}</td>
                     <td className={Number(stock.change_percent) >= 0 ? 'text-success' : 'text-danger'}>
                       {formatPercent(stock.change_percent)}
@@ -516,13 +631,14 @@ function SectorStocks() {
                           </>
                         )
                       })()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+	                    </td>
+	                  </tr>
+	                ))}
+	              </tbody>
+	            </table>
+	          </div>
+            )
+	        )}
       </div>
 
       {selectedStock ? (

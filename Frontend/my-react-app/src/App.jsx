@@ -42,6 +42,33 @@ function PortfolioGate() {
   );
 }
 
+function TimeseriesGate() {
+  const navigate = useNavigate();
+  const loggedIn = isLoggedIn();
+
+  if (loggedIn) return <Timeseries />;
+
+  return (
+    <div className="card border-0 shadow-sm">
+      <div className="card-body py-5 text-center">
+        <h4 className="mb-2">Login required</h4>
+        <p className="text-secondary mb-4">Please log in to access the timeseries page.</p>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() =>
+            navigate("/login", {
+              state: { redirectTo: "/timeseries", message: "Please log in to access timeseries." },
+            })
+          }
+        >
+          Login
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const navigate = useNavigate();
   const loggedIn = isLoggedIn();
@@ -105,7 +132,7 @@ function App() {
           <Route path="/stock" element={<SectorStocks />} />
           <Route path="/stock/:sectorName" element={<SectorStocks />} />
           <Route path="/stocks" element={<Stocks />} />
-          <Route path="/timeseries" element={<Timeseries />} />
+          <Route path="/timeseries" element={<TimeseriesGate />} />
           <Route path="/builtin" element={<Navigate to="/timeseries" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />

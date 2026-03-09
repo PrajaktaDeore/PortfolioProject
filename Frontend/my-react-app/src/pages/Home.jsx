@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import './Home.css'
 import ChartModal from '../components/ChartModal'
 import { useChartModal } from '../components/useChartModal'
@@ -77,6 +77,7 @@ function buildChartData(historyRows) {
 }
 
 function Home() {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [niftyHistory, setNiftyHistory] = useState([])
@@ -84,6 +85,42 @@ function Home() {
   const { modal, close, openSvg } = useChartModal()
   const loggedIn = checkLoggedIn()
   const trackPerformancePath = loggedIn ? '/portfolio' : '/login'
+  const [loginPrompt, setLoginPrompt] = useState(null)
+  const portfolioCount = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('user_portfolio_stocks_v1')
+      const arr = raw ? JSON.parse(raw) : []
+      return Array.isArray(arr) ? arr.length : 0
+    } catch {
+      return 0
+    }
+  }, [loggedIn])
+  const niftySummary = useMemo(() => {
+    const points = (Array.isArray(niftyHistory) ? niftyHistory : [])
+      .map((row) => Number(row?.close))
+      .filter((v) => Number.isFinite(v))
+    if (points.length < 2) return null
+
+    const first = points[0]
+    const last = points[points.length - 1]
+    const change = last - first
+    const changePct = first ? (change / first) * 100 : null
+    const low = Math.min(...points)
+    const high = Math.max(...points)
+
+    return { first, last, change, changePct, low, high }
+  }, [niftyHistory])
+
+  function openLoginFor(path) {
+    navigate('/login', { state: { redirectTo: path, message: 'Please log in to continue.' } })
+  }
+
+  function guardAction(e, requiresAuth, path, label) {
+    setLoginPrompt(null)
+    if (!requiresAuth || loggedIn) return
+    e.preventDefault()
+    setLoginPrompt({ path, label })
+  }
   
 
   useEffect(() => {
@@ -144,22 +181,305 @@ function Home() {
     )
   }
 
-  return (
-    <div className="home-page d-flex flex-column gap-4 p-3 p-md-4 rounded animate-fade-in">
-      <ChartModal {...modal} onClose={close} />
-      <div className="card border-0 shadow-sm home-surface home-hero">
-        <div className="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-          <div>
-            <h3 className="mb-1">Welcome to Stock Analysis</h3>
-            {!loggedIn && (
-              <p className="mb-0 text-secondary">Login or create account to track your portfolio.</p>
-            )}
+	  return (
+	    <div className="home-page d-flex flex-column gap-4 p-3 p-md-4 rounded animate-fade-in">
+	      <ChartModal {...modal} onClose={close} />
+	      <div className="card border-0 shadow-sm home-surface home-hero">
+	        <div className="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+	          <div>
+	            <h3 className="mb-1">
+	              Welcome to <span className="app-gradient-text">Stock Analysis</span>
+	            </h3>
+              <p className="home-hero-tagline mb-0">
+                Track sector moves, build your portfolio, and explore AI-driven timeseries forecasting.
+              </p>
+	            {!loggedIn && (
+	              <p className="home-hero-sub mb-0">Log in to save stocks and track performance.</p>
+	            )}
+              {niftySummary ? (
+                <div className="d-flex flex-wrap gap-2 mt-3">
+                  <span className="badge text-bg-secondary">
+                    NIFTY 50: {formatPrice(niftySummary.last)}
+                  </span>
+                  <span
+                    className={`badge text-bg-secondary ${
+                      Number(niftySummary.changePct) >= 0 ? 'text-success' : 'text-danger'
+                    }`}
+                  >
+                    3M: {Number(niftySummary.changePct) >= 0 ? '+' : ''}
+                    {formatPercent(niftySummary.changePct)}
+                  </span>
+                </div>
+              ) : null}
+
+              <div className="home-hero-chips mt-3">
+                <span className="home-chip">
+                  <span className="home-chip-dot home-chip-dot-primary" />
+                  Sector insights
+                </span>
+                <span className="home-chip">
+                  <span className="home-chip-dot home-chip-dot-success" />
+                  Stock screening
+                </span>
+                <span className="home-chip">
+                  <span className="home-chip-dot home-chip-dot-warn" />
+                  Timeseries forecasts
+                </span>
+                {loggedIn ? (
+                  <span className="home-chip">
+                    <span className="home-chip-dot home-chip-dot-purple" />
+                    Portfolio: {portfolioCount} stock{portfolioCount === 1 ? '' : 's'}
+                  </span>
+                ) : null}
+              </div>
+	          </div>
+	            <div className="home-actions">
+	              <div className="home-actions-title">Quick Actions</div>
+	              <div className="home-action-grid">
+	                <Link
+                    to="/sectors"
+                    className="home-action-tile text-decoration-none"
+                    onClick={() => setLoginPrompt(null)}
+                  >
+	                  <div className="home-action-icon">
+	                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+	                      <path d="M4 19V5" />
+	                      <path d="M4 5h16" />
+                      <path d="M20 5v14" />
+                      <path d="M7 8h10" />
+                      <path d="M7 12h10" />
+                      <path d="M7 16h10" />
+                    </svg>
+                  </div>
+                  <div className="home-action-body">
+                    <div className="home-action-label">Explore Sectors</div>
+                    <div className="home-action-sub">Insights, drivers, metrics</div>
+	                  </div>
+	                </Link>
+
+	                <Link
+                    to="/stock/banking"
+                    className="home-action-tile text-decoration-none"
+                    onClick={() => setLoginPrompt(null)}
+                  >
+	                  <div className="home-action-icon home-action-icon-alt">
+	                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+	                      <path d="M3 17l6-6 4 4 7-7" />
+	                      <path d="M14 8h6v6" />
+                    </svg>
+                  </div>
+                  <div className="home-action-body">
+                    <div className="home-action-label">Browse Stocks</div>
+                    <div className="home-action-sub">Filter, sort, add to portfolio</div>
+	                  </div>
+	                </Link>
+
+	                <Link
+                    to="/portfolio"
+                    className={`home-action-tile text-decoration-none home-action-primary ${!loggedIn ? 'home-action-locked' : ''}`}
+                    onClick={(e) => guardAction(e, true, '/portfolio', 'Portfolio')}
+                  >
+	                  <div className="home-action-icon">
+	                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+	                      <path d="M4 7h16" />
+	                      <path d="M4 7l2-3h12l2 3" />
+                      <path d="M6 7v13h12V7" />
+                      <path d="M9 11h6" />
+                    </svg>
+                  </div>
+	                  <div className="home-action-body">
+	                    <div className="home-action-label">Portfolio</div>
+	                    <div className="home-action-sub">Performance & risk analytics</div>
+	                  </div>
+                    {!loggedIn ? <span className="home-action-lock">Login</span> : null}
+	                </Link>
+
+	                <Link
+                    to="/timeseries"
+                    className={`home-action-tile text-decoration-none ${!loggedIn ? 'home-action-locked' : ''}`}
+                    onClick={(e) => guardAction(e, true, '/timeseries', 'Timeseries')}
+                  >
+	                  <div className="home-action-icon home-action-icon-warn">
+	                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+	                      <path d="M4 19h16" />
+	                      <path d="M6 16V8" />
+                      <path d="M12 16V5" />
+                      <path d="M18 16v-6" />
+                    </svg>
+                  </div>
+	                  <div className="home-action-body">
+	                    <div className="home-action-label">Timeseries</div>
+	                    <div className="home-action-sub">Forecasting & price history</div>
+	                  </div>
+                    {!loggedIn ? <span className="home-action-lock">Login</span> : null}
+	                </Link>
+	              </div>
+
+                {loginPrompt ? (
+                  <div className="home-login-callout mt-3">
+                    <div>
+                      <div className="home-login-title">
+                        Login required for <span className="app-gradient-text">{loginPrompt.label}</span>
+                      </div>
+                      <div className="home-login-sub">Please log in to continue.</div>
+                    </div>
+                    <button type="button" className="btn btn-sm btn-primary" onClick={() => openLoginFor(loginPrompt.path)}>
+                      Login
+                    </button>
+                  </div>
+                ) : null}
+	            </div>
+		        </div>
+		      </div>
+
+        <div className="row g-4">
+          <div className="col-12 col-lg-8 d-flex">
+            <div className="card border-0 shadow-sm home-surface h-100 flex-fill">
+              <div className="card-header d-flex justify-content-between align-items-center">
+                <h5 className="mb-0">NIFTY 50 Graph</h5>
+                <span className="badge text-bg-primary">Last 3 Months</span>
+              </div>
+              <div className="card-body">
+                {(() => {
+                  const chart = buildChartData(niftyHistory)
+                  if (!chart) {
+                    return <p className="text-secondary mb-0">{niftyError || 'No NIFTY graph data available.'}</p>
+                  }
+                  return (
+                    <svg
+                      className="chart-svg"
+                      viewBox={`0 0 ${chart.width} ${chart.height}`}
+                      role="img"
+                      aria-label="NIFTY 50 line graph"
+                      onClick={(e) => openSvg(e, 'NIFTY 50 Graph')}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <defs>
+                        <linearGradient id="homeNiftyArea" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="var(--chart-line-1)" stopOpacity="0.35" />
+                          <stop offset="100%" stopColor="var(--chart-line-1)" stopOpacity="0" />
+                        </linearGradient>
+                        <filter id="homeNiftyGlow" x="-30%" y="-30%" width="160%" height="160%">
+                          <feGaussianBlur stdDeviation="2.6" result="blur" />
+                          <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                          </feMerge>
+                        </filter>
+                      </defs>
+                      <line
+                        x1={chart.left}
+                        y1={chart.top}
+                        x2={chart.left}
+                        y2={chart.top + chart.chartHeight}
+                        className="chart-axis"
+                      />
+                      <line
+                        x1={chart.left}
+                        y1={chart.top + chart.chartHeight}
+                        x2={chart.left + chart.chartWidth}
+                        y2={chart.top + chart.chartHeight}
+                        className="chart-axis"
+                      />
+                      <polyline fill="url(#homeNiftyArea)" stroke="none" points={chart.areaPoints} />
+                      <polyline
+                        fill="none"
+                        stroke="var(--chart-line-1)"
+                        strokeWidth="2.8"
+                        filter="url(#homeNiftyGlow)"
+                        points={chart.polyline}
+                      />
+                      <text x={chart.left} y={chart.top - 6} fontSize="11" className="chart-text">
+                        Close
+                      </text>
+                      <text
+                        x={chart.left + chart.chartWidth - 46}
+                        y={chart.top + chart.chartHeight + 24}
+                        fontSize="11"
+                        className="chart-text"
+                      >
+                        Date
+                      </text>
+                      <text x={chart.left} y={chart.top + 12} fontSize="10" className="chart-text-muted">
+                        Max: {formatPrice(chart.maxY)}
+                      </text>
+                      <text
+                        x={chart.left}
+                        y={chart.top + chart.chartHeight - 8}
+                        fontSize="10"
+                        className="chart-text-muted"
+                      >
+                        Min: {formatPrice(chart.minY)}
+                      </text>
+                      <text
+                        x={chart.left}
+                        y={chart.top + chart.chartHeight + 24}
+                        fontSize="10"
+                        className="chart-text-muted"
+                      >
+                        {chart.firstDate}
+                      </text>
+                      <text
+                        x={chart.left + chart.chartWidth - 60}
+                        y={chart.top + chart.chartHeight + 24}
+                        fontSize="10"
+                        className="chart-text-muted"
+                      >
+                        {chart.lastDate}
+                      </text>
+                    </svg>
+                  )
+                })()}
+              </div>
+            </div>
+          </div>
+          <div className="col-12 col-lg-4 d-flex">
+            <div className="card border-0 shadow-sm home-surface home-pulse h-100 flex-fill">
+              <div className="card-header">
+                <h5 className="mb-0">Market Pulse</h5>
+              </div>
+              <div className="card-body">
+                <div className="app-kpi-grid">
+                  <div className="app-kpi-card">
+                    <div className="app-kpi-label">Last Close</div>
+                    <p className="app-kpi-value">{niftySummary ? formatPrice(niftySummary.last) : '-'}</p>
+                    <p className="app-kpi-sub">NIFTY 50</p>
+                  </div>
+                  <div className="app-kpi-card">
+                    <div className="app-kpi-label">3M Change</div>
+                    <p
+                      className={`app-kpi-value ${
+                        niftySummary && Number(niftySummary.changePct) >= 0 ? 'text-success' : 'text-danger'
+                      }`}
+                    >
+                      {niftySummary
+                        ? `${niftySummary.changePct >= 0 ? '+' : ''}${formatPercent(niftySummary.changePct)}`
+                        : '-'}
+                    </p>
+                    <p className="app-kpi-sub">
+                      {niftySummary ? `${niftySummary.change >= 0 ? '+' : ''}${formatPrice(niftySummary.change)}` : '-'}
+                    </p>
+                  </div>
+                  <div className="app-kpi-card">
+                    <div className="app-kpi-label">3M Low</div>
+                    <p className="app-kpi-value">{niftySummary ? formatPrice(niftySummary.low) : '-'}</p>
+                    <p className="app-kpi-sub">Support zone</p>
+                  </div>
+                  <div className="app-kpi-card">
+                    <div className="app-kpi-label">3M High</div>
+                    <p className="app-kpi-value">{niftySummary ? formatPrice(niftySummary.high) : '-'}</p>
+                    <p className="app-kpi-sub">Resistance zone</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-		      <div className="portfolio-guide-section py-4">
-		        <h4 className="mb-4 text-center">Start Your Portfolio in 4 Simple Steps</h4>
+			      <div className="portfolio-guide-section py-4">
+		        <h4 className="mb-4 text-center">
+	            Start Your <span className="app-gradient-text">Portfolio</span> in 4 Simple Steps
+	          </h4>
 		        <div className="row g-4">
           <div className="col-md-3">
             <Link to="/login" className="text-decoration-none h-100 d-block">
@@ -230,101 +550,6 @@ function Home() {
 	        </div>
 	      </div>
 
-        <div className="card border-0 shadow-sm home-surface">
-          <div className="card-header bg-transparent d-flex justify-content-between align-items-center">
-            <h5 className="mb-0">NIFTY 50 Graph</h5>
-            <span className="badge text-bg-primary">Last 3 Months</span>
-          </div>
-          <div className="card-body">
-            {(() => {
-              const chart = buildChartData(niftyHistory)
-              if (!chart) {
-                return <p className="text-secondary mb-0">{niftyError || 'No NIFTY graph data available.'}</p>
-              }
-              return (
-                <svg
-                  className="chart-svg"
-                  viewBox={`0 0 ${chart.width} ${chart.height}`}
-                  role="img"
-                  aria-label="NIFTY 50 line graph"
-                  onClick={(e) => openSvg(e, 'NIFTY 50 Graph')}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <defs>
-                    <linearGradient id="homeNiftyArea" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--chart-line-1)" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="var(--chart-line-1)" stopOpacity="0" />
-                    </linearGradient>
-                    <filter id="homeNiftyGlow" x="-30%" y="-30%" width="160%" height="160%">
-                      <feGaussianBlur stdDeviation="2.6" result="blur" />
-                      <feMerge>
-                        <feMergeNode in="blur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
-                  </defs>
-                  <line
-                    x1={chart.left}
-                    y1={chart.top}
-                    x2={chart.left}
-                    y2={chart.top + chart.chartHeight}
-                    className="chart-axis"
-                  />
-                  <line
-                    x1={chart.left}
-                    y1={chart.top + chart.chartHeight}
-                    x2={chart.left + chart.chartWidth}
-                    y2={chart.top + chart.chartHeight}
-                    className="chart-axis"
-                  />
-                  <polyline fill="url(#homeNiftyArea)" stroke="none" points={chart.areaPoints} />
-                  <polyline
-                    fill="none"
-                    stroke="var(--chart-line-1)"
-                    strokeWidth="2.8"
-                    filter="url(#homeNiftyGlow)"
-                    points={chart.polyline}
-                  />
-                  <text x={chart.left} y={chart.top - 6} fontSize="11" className="chart-text">
-                    Close
-                  </text>
-                  <text
-                    x={chart.left + chart.chartWidth - 46}
-                    y={chart.top + chart.chartHeight + 24}
-                    fontSize="11"
-                    className="chart-text"
-                  >
-                    Date
-                  </text>
-                  <text x={chart.left} y={chart.top + 12} fontSize="10" className="chart-text-muted">
-                    Max: {formatPrice(chart.maxY)}
-                  </text>
-                  <text
-                    x={chart.left}
-                    y={chart.top + chart.chartHeight - 8}
-                    fontSize="10"
-                    className="chart-text-muted"
-                  >
-                    Min: {formatPrice(chart.minY)}
-                  </text>
-                  <text x={chart.left} y={chart.top + chart.chartHeight + 24} fontSize="10" className="chart-text-muted">
-                    {chart.firstDate}
-                  </text>
-                  <text
-                    x={chart.left + chart.chartWidth - 60}
-                    y={chart.top + chart.chartHeight + 24}
-                    fontSize="10"
-                    className="chart-text-muted"
-                  >
-                    {chart.lastDate}
-                  </text>
-                </svg>
-              )
-            })()}
-          </div>
-        </div>
-
-	      
 	    </div>
 	  )
 }

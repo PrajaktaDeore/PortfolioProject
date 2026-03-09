@@ -9,6 +9,29 @@ function formatValue(value) {
   return value === null || value === undefined || value === '' ? '-' : value
 }
 
+function toNumber(value) {
+  const num = Number(value)
+  return Number.isFinite(num) ? num : null
+}
+
+function formatPrice(value) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '-'
+  return Number(value).toLocaleString('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
+
+function formatPercent(value) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '-'
+  return `${Number(value).toFixed(2)}%`
+}
+
+function formatMarketCap(value) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '-'
+  return Number(value).toLocaleString('en-IN')
+}
+
 function formatChartLabel(isoDate) {
   if (!isoDate) return ''
   const date = new Date(isoDate)
@@ -223,6 +246,32 @@ function Stocks() {
             Showing last available data. {error}
           </div>
         ) : null}
+
+        <div className="app-kpi-grid mb-3">
+          <div className="app-kpi-card">
+            <div className="app-kpi-label">Symbol</div>
+            <p className="app-kpi-value">{formatValue(stock.symbol)}</p>
+            <p className="app-kpi-sub">{formatValue(stock.name)}</p>
+          </div>
+          <div className="app-kpi-card">
+            <div className="app-kpi-label">Price</div>
+            <p className="app-kpi-value">{formatPrice(stock.price)}</p>
+            <p className="app-kpi-sub">Currency: {formatValue(stock.currency)}</p>
+          </div>
+          <div className="app-kpi-card">
+            <div className="app-kpi-label">Change</div>
+            <p className={`app-kpi-value ${(toNumber(stock.change_percent) ?? 0) >= 0 ? 'text-success' : 'text-danger'}`}>
+              {formatPercent(stock.change_percent)}
+            </p>
+            <p className="app-kpi-sub">Range 1Y: {formatPrice(stock.min_1y)} → {formatPrice(stock.max_1y)}</p>
+          </div>
+          <div className="app-kpi-card">
+            <div className="app-kpi-label">Market Cap</div>
+            <p className="app-kpi-value">{formatMarketCap(stock.market_cap)}</p>
+            <p className="app-kpi-sub">P/E: {formatValue(stock.pe_ratio)}</p>
+          </div>
+        </div>
+
         <div className="table-responsive">
           <table className="table table-striped align-middle mb-0">
             <tbody>

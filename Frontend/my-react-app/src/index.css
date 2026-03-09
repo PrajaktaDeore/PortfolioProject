@@ -207,6 +207,62 @@ svg rect[fill="#0ea5e9"] {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  text-shadow: 0 10px 30px rgba(91, 110, 225, 0.22);
+}
+
+.app-gradient-text {
+  background: linear-gradient(135deg, var(--primary) 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 10px 30px rgba(91, 110, 225, 0.22);
+}
+
+.app-kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .app-kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+.app-kpi-card {
+  background:
+    radial-gradient(600px 220px at 0% 0%, rgba(91, 110, 225, 0.18), transparent 58%),
+    linear-gradient(180deg, rgba(11, 23, 51, 0.96) 0%, rgba(5, 11, 31, 0.52) 100%);
+  border: 1px solid var(--surface-border);
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: 0 18px 50px rgba(2, 6, 23, 0.28);
+}
+
+.app-kpi-label {
+  color: rgba(148, 163, 184, 0.95);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  margin-bottom: 6px;
+}
+
+.app-kpi-value {
+  font-family: "Outfit", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.app-kpi-sub {
+  margin-top: 4px;
+  margin-bottom: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
 }
 
 .app-nav-link {
@@ -239,6 +295,7 @@ svg rect[fill="#0ea5e9"] {
   background: var(--surface-soft) !important;
   border-bottom: 1px solid var(--surface-border) !important;
   padding: 1.1rem 1.25rem !important;
+  color: var(--text-main) !important;
 }
 
 .card-body,
