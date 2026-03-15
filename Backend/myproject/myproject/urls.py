@@ -19,6 +19,12 @@ from django.urls import path , include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # API (production uses /api as a base path; keep non-/api routes for local/dev compatibility)
+    path('api/sector-stocks/', include('portfolio.urls')),
+    path('api/all-sector-stocks/', include('stock.urls')),
+    path('api/user/', include('user.urls')),
+
     path('sector-stocks/', include('portfolio.urls')),
     path('all-sector-stocks/', include('stock.urls')),
     path('user/', include('user.urls')),
