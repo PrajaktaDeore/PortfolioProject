@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=azureuser
-WorkingDirectory=%h/PortfolioProject
+User=__SERVICE_USER__
+WorkingDirectory=__APP_DIR__
 
 # Change these if you want different bind addresses / ports.
 Environment=BACKEND_HOST=127.0.0.1
@@ -16,7 +16,7 @@ Environment=CUDA_VISIBLE_DEVICES=-1
 Environment=TF_CPP_MIN_LOG_LEVEL=3
 
 # Keep logs in `journalctl -u tradeanalytics -f`
-ExecStart=/usr/bin/env bash %h/PortfolioProject/scripts/ubuntu/dev.sh
+ExecStart=/usr/bin/env bash __APP_DIR__/scripts/ubuntu/dev.sh
 Restart=on-failure
 RestartSec=5
 

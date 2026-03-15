@@ -50,6 +50,12 @@ chmod +x scripts/ubuntu/install-service.sh
 scripts/ubuntu/install-service.sh
 ```
 
+If your repo is not in the default location, pass these env vars:
+
+```bash
+APP_DIR=/home/azureuser/PortfolioProject SERVICE_USER=azureuser scripts/ubuntu/install-service.sh
+```
+
 3) Check status / logs:
 
 ```bash
