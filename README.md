@@ -34,6 +34,29 @@ To change ports/hosts:
 BACKEND_HOST=0.0.0.0 BACKEND_PORT=8000 FRONTEND_HOST=0.0.0.0 FRONTEND_PORT=5173 make dev
 ```
 
+## Ubuntu auto-start (systemd)
+
+1) One-time setup:
+
+```bash
+chmod +x scripts/ubuntu/*.sh
+make setup
+```
+
+2) Install + enable the service (auto-starts on boot):
+
+```bash
+chmod +x scripts/ubuntu/install-service.sh
+scripts/ubuntu/install-service.sh
+```
+
+3) Check status / logs:
+
+```bash
+sudo systemctl status tradeanalytics
+sudo journalctl -u tradeanalytics -f
+```
+
 ## Troubleshooting
 
 ### RNN forecast (TensorFlow) on Windows

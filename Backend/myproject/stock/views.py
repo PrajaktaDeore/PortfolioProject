@@ -1032,13 +1032,35 @@ class TimeSeriesArimaForecastView(APIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
+            import warnings
+
+            try:
+                from statsmodels.tools.sm_exceptions import ConvergenceWarning
+            except Exception:
+                ConvergenceWarning = None
+
             fit_result = None
             fit_error = ""
             best_aic = None
             for order in [(5, 0, 0), (3, 0, 2), (2, 0, 2), (1, 0, 1)]:
                 try:
                     model = ARIMA(model_returns, order=order)
-                    current_fit = model.fit()
+                    with warnings.catch_warnings():
+                        if ConvergenceWarning is not None:
+                            warnings.simplefilter("ignore", ConvergenceWarning)
+                        warnings.filterwarnings(
+                            "ignore",
+                            message=r"Non-stationary starting autoregressive parameters found.*",
+                            category=UserWarning,
+                            module=r"statsmodels\\.tsa\\.statespace\\.sarimax",
+                        )
+                        warnings.filterwarnings(
+                            "ignore",
+                            message=r"Non-invertible starting MA parameters found.*",
+                            category=UserWarning,
+                            module=r"statsmodels\\.tsa\\.statespace\\.sarimax",
+                        )
+                        current_fit = model.fit()
                     current_aic = getattr(current_fit, "aic", None)
                     if fit_result is None or (current_aic is not None and (best_aic is None or current_aic < best_aic)):
                         fit_result = current_fit
@@ -1120,7 +1142,9 @@ class TimeSeriesArimaForecastView(APIView):
         elif model_name == "rnn":
             try:
                 import numpy as np
-                os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+                # Avoid GPU probing / CUDA errors on CPU-only hosts.
+                os.environ.setdefault("CUDA_VISIBLE_DEVICES", "-1")
+                os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
                 import tensorflow as tf
                 from tensorflow.keras import Input
                 from tensorflow.keras.layers import Dense, SimpleRNN
