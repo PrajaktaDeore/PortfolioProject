@@ -30,6 +30,15 @@ else
   echo "WARNING: Backend/requirements.txt not found; skipping pip install -r." >&2
 fi
 
+if [[ "${INSTALL_TF:-0}" == "1" ]]; then
+  if [[ -f "$ROOT_DIR/Backend/requirements-ml.txt" ]]; then
+    echo "== Backend: optional ML deps (TensorFlow) =="
+    "$ROOT_DIR/Backend/.venv/bin/python" -m pip install -r "$ROOT_DIR/Backend/requirements-ml.txt"
+  else
+    echo "WARNING: Backend/requirements-ml.txt not found; skipping TensorFlow install." >&2
+  fi
+fi
+
 echo "== Backend: migrations =="
 (cd "$BACKEND_DIR" && "$ROOT_DIR/Backend/.venv/bin/python" manage.py migrate)
 
@@ -37,4 +46,3 @@ echo "== Frontend: npm install =="
 (cd "$FRONTEND_DIR" && npm install)
 
 echo "Setup complete."
-

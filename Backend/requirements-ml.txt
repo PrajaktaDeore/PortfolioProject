@@ -1,0 +1,5 @@
+# Optional ML dependencies (used for `model=rnn` in the timeseries forecast endpoint).
+#
+# NOTE: TensorFlow is a large dependency and may take time to install.
+tensorflow
+

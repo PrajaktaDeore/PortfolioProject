@@ -12,6 +12,12 @@ chmod +x scripts/ubuntu/*.sh
 make setup
 ```
 
+Optional (only if you want the RNN forecast model enabled on the backend):
+
+```bash
+INSTALL_TF=1 make setup
+```
+
 ## Start backend + frontend (dev)
 
 ```bash
