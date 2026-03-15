@@ -1127,8 +1127,11 @@ class TimeSeriesArimaForecastView(APIView):
                 from tensorflow.keras.models import Sequential
             except Exception as exc:
                 return Response(
-                    {"detail": f"TensorFlow is required for RNN forecast: {exc}"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    {
+                        "detail": f"TensorFlow is required for RNN forecast: {exc}",
+                        "hint": "Install optional ML deps (tensorflow) and retry. See Backend/requirements-ml.txt.",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             close_values = close_series.tail(300).astype(float).to_numpy()

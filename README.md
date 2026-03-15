@@ -33,3 +33,12 @@ To change ports/hosts:
 ```bash
 BACKEND_HOST=0.0.0.0 BACKEND_PORT=8000 FRONTEND_HOST=0.0.0.0 FRONTEND_PORT=5173 make dev
 ```
+
+## Troubleshooting
+
+### RNN forecast (TensorFlow) on Windows
+
+If `pip install tensorflow` fails with a long-path error, either:
+
+- Move the repo to a shorter path (example `C:\repo\PortfolioProject`) and recreate the venv, or
+- Enable Windows Long Path support (Group Policy: “Enable Win32 long paths”, or set `LongPathsEnabled=1` in the registry).
