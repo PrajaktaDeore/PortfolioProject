@@ -28,9 +28,9 @@ if ! sudo -u "$SERVICE_USER" test -r "$APP_DIR"; then
   exit 1
 fi
 
-if ! sudo -u "$SERVICE_USER" test -x "$APP_DIR/scripts/ubuntu/backend.sh"; then
-  echo "ERROR: $SERVICE_USER cannot execute $APP_DIR/scripts/ubuntu/backend.sh" >&2
-  echo "Fix example: chmod +x $APP_DIR/scripts/ubuntu/backend.sh" >&2
+if ! sudo -u "$SERVICE_USER" test -x "$APP_DIR/scripts/ubuntu/backend-prod.sh"; then
+  echo "ERROR: $SERVICE_USER cannot execute $APP_DIR/scripts/ubuntu/backend-prod.sh" >&2
+  echo "Fix example: chmod +x $APP_DIR/scripts/ubuntu/backend-prod.sh" >&2
   exit 1
 fi
 
@@ -47,4 +47,3 @@ sudo systemctl enable --now tradeanalytics-backend.service
 
 echo "Backend service installed and started."
 echo "Logs: sudo journalctl -u tradeanalytics-backend -f"
-

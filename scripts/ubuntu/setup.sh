@@ -30,6 +30,10 @@ else
   echo "WARNING: Backend/requirements.txt not found; skipping pip install -r." >&2
 fi
 
+if [[ -f "$ROOT_DIR/Backend/requirements-serve.txt" ]]; then
+  "$ROOT_DIR/Backend/.venv/bin/python" -m pip install -r "$ROOT_DIR/Backend/requirements-serve.txt"
+fi
+
 if [[ "${INSTALL_TF:-0}" == "1" ]]; then
   if [[ -f "$ROOT_DIR/Backend/requirements-ml.txt" ]]; then
     echo "== Backend: optional ML deps (TensorFlow) =="

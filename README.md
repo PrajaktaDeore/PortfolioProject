@@ -68,7 +68,7 @@ sudo journalctl -u tradeanalytics -f
 If you’re using Nginx as a reverse proxy, run the API as its own service (so it doesn’t go down when the Vite dev process exits):
 
 ```bash
-chmod +x scripts/ubuntu/backend.sh scripts/ubuntu/install-backend-service.sh
+chmod +x scripts/ubuntu/backend-prod.sh scripts/ubuntu/install-backend-service.sh
 APP_DIR=/home/azureuser/PortfolioProject SERVICE_USER=azureuser scripts/ubuntu/install-backend-service.sh
 ```
 
@@ -78,6 +78,13 @@ Quick checks:
 sudo systemctl status tradeanalytics-backend --no-pager -l
 curl -i http://127.0.0.1:8000/api/all-sector-stocks/
 sudo journalctl -u nginx -n 80 --no-pager
+```
+
+If port `8000` is already in use, stop the old process/service first:
+
+```bash
+sudo systemctl stop tradeanalytics tradeanalytics-backend || true
+sudo ss -ltnp | rg ":8000\\b" || true
 ```
 
 ## Troubleshooting

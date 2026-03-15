@@ -12,10 +12,9 @@ Environment=BACKEND_PORT=8000
 Environment=CUDA_VISIBLE_DEVICES=-1
 Environment=TF_CPP_MIN_LOG_LEVEL=3
 
-ExecStart=/usr/bin/env bash __APP_DIR__/scripts/ubuntu/backend.sh
+ExecStart=/usr/bin/env bash __APP_DIR__/scripts/ubuntu/backend-prod.sh
 Restart=on-failure
 RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
-

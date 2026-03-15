@@ -1,0 +1,3 @@
+# Production serving dependencies for the Django API (recommended when behind Nginx).
+gunicorn
+
