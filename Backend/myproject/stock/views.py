@@ -14,70 +14,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.sector_symbols import SECTOR_SYMBOLS
+
 from .models import Sector, Stock, StockPeHistory
-
-
-SECTOR_SYMBOLS = {
-    "banking": [
-        "HDFCBANK.NS",
-        "ICICIBANK.NS",
-        "SBIN.NS",
-        "KOTAKBANK.NS",
-        "AXISBANK.NS",
-        "INDUSINDBK.NS",
-        "PNB.NS",
-        "BANKBARODA.NS",
-        "IDFCFIRSTB.NS",
-        "FEDERALBNK.NS",
-    ],
-    "it": [
-        "TCS.NS",
-        "INFY.NS",
-        "HCLTECH.NS",
-        "WIPRO.NS",
-        "TECHM.NS",
-        "LTIM.NS",
-    ],
-    "pharma": [
-        "SUNPHARMA.NS",
-        "DRREDDY.NS",
-        "CIPLA.NS",
-        "DIVISLAB.NS",
-        "APOLLOHOSP.NS",
-        "LUPIN.NS",
-    ],
-    "fmcg": [
-        "HINDUNILVR.NS",
-        "ITC.NS",
-        "NESTLEIND.NS",
-        "DABUR.NS",
-        "BRITANNIA.NS",
-        "MARICO.NS",
-    ],
-    "auto": [
-        "MARUTI.NS",
-        "TATAMOTORS.NS",
-        "M&M.NS",
-        "BAJAJ-AUTO.NS",
-        "EICHERMOT.NS",
-        "HEROMOTOCO.NS",
-    ],
-    "energy": [
-        "RELIANCE.NS",
-        "ONGC.NS",
-        "IOC.NS",
-        "BPCL.NS",
-        "NTPC.NS",
-        "POWERGRID.NS",
-    ],
-    "metals": [
-        "TATASTEEL.NS",
-        "JSWSTEEL.NS",
-        "HINDALCO.NS",
-        "VEDL.NS",
-        "SAIL.NS",
-    ],
-}
 
 _ALL_STOCKS_CACHE_TTL_SECONDS = 60
 _all_stocks_cache = {"ts": 0.0, "data": None}
@@ -229,30 +168,48 @@ class AllSectorStocksView(APIView):
         return symbol_to_sector
 
     def _fetch_quote_api(self, symbols):
-        query = urlencode({"symbols": ",".join(symbols)})
-        urls = [
-            f"https://query1.finance.yahoo.com/v7/finance/quote?{query}",
-            f"https://query2.finance.yahoo.com/v7/finance/quote?{query}",
-        ]
-
+        # Avoid overly long URLs / symbol limits by chunking.
+        chunk_size = 50
+        combined = []
         errors = []
-        for url in urls:
-            try:
-                req = Request(
-                    url,
-                    headers={
-                        "User-Agent": "Mozilla/5.0",
-                        "Accept": "application/json",
-                    },
-                )
-                with urlopen(req, timeout=10) as resp:
-                    raw = resp.read().decode("utf-8")
-                data = json.loads(raw)
-                return data.get("quoteResponse", {}).get("result", []), None
-            except (HTTPError, URLError, ValueError, TimeoutError) as exc:
-                errors.append(str(exc))
 
-        return None, "; ".join(errors) if errors else "Unknown upstream error."
+        for i in range(0, len(symbols), chunk_size):
+            chunk = symbols[i : i + chunk_size]
+            query = urlencode({"symbols": ",".join(chunk)})
+            urls = [
+                f"https://query1.finance.yahoo.com/v7/finance/quote?{query}",
+                f"https://query2.finance.yahoo.com/v7/finance/quote?{query}",
+            ]
+
+            chunk_errors = []
+            chunk_result = None
+            for url in urls:
+                try:
+                    req = Request(
+                        url,
+                        headers={
+                            "User-Agent": "Mozilla/5.0",
+                            "Accept": "application/json",
+                        },
+                    )
+                    with urlopen(req, timeout=10) as resp:
+                        raw = resp.read().decode("utf-8")
+                    data = json.loads(raw)
+                    chunk_result = data.get("quoteResponse", {}).get("result", [])
+                    break
+                except (HTTPError, URLError, ValueError, TimeoutError) as exc:
+                    chunk_errors.append(str(exc))
+
+            if chunk_result is None:
+                errors.append("; ".join(chunk_errors) if chunk_errors else "Unknown upstream error.")
+                continue
+
+            combined.extend(chunk_result)
+
+        if not combined:
+            return None, "; ".join(errors) if errors else "Unknown upstream error."
+
+        return combined, "; ".join(errors) if errors else None
 
     def _fetch_yfinance_fallback(self, symbols, symbol_to_sector):
         payload = []

@@ -5,71 +5,10 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.sector_symbols import SECTOR_SYMBOLS, resolve_sector
+
 from .models import Portfolio
 from .serializers import PortfolioSerializer
-
-
-SECTOR_SYMBOLS = {
-    "banking": [
-        "HDFCBANK.NS",
-        "ICICIBANK.NS",
-        "SBIN.NS",
-        "KOTAKBANK.NS",
-        "AXISBANK.NS",
-        "INDUSINDBK.NS",
-        "PNB.NS",
-        "BANKBARODA.NS",
-        "IDFCFIRSTB.NS",
-        "FEDERALBNK.NS",
-    ],
-    "it": [
-        "TCS.NS",
-        "INFY.NS",
-        "HCLTECH.NS",
-        "WIPRO.NS",
-        "TECHM.NS",
-        "LTIM.NS",
-    ],
-    "pharma": [
-        "SUNPHARMA.NS",
-        "DRREDDY.NS",
-        "CIPLA.NS",
-        "DIVISLAB.NS",
-        "APOLLOHOSP.NS",
-        "LUPIN.NS",
-    ],
-    "fmcg": [
-        "HINDUNILVR.NS",
-        "ITC.NS",
-        "NESTLEIND.NS",
-        "DABUR.NS",
-        "BRITANNIA.NS",
-        "MARICO.NS",
-    ],
-    "auto": [
-        "MARUTI.NS",
-        "TATAMOTORS.NS",
-        "M&M.NS",
-        "BAJAJ-AUTO.NS",
-        "EICHERMOT.NS",
-        "HEROMOTOCO.NS",
-    ],
-    "energy": [
-        "RELIANCE.NS",
-        "ONGC.NS",
-        "IOC.NS",
-        "BPCL.NS",
-        "NTPC.NS",
-        "POWERGRID.NS",
-    ],
-    "metals": [
-        "TATASTEEL.NS",
-        "JSWSTEEL.NS",
-        "HINDALCO.NS",
-        "VEDL.NS",
-        "SAIL.NS",
-    ],
-}
 
 
 def _safe_get(obj, key, default=None):
@@ -101,7 +40,8 @@ def _json_safe_number(value):
 
 class SectorStocksView(APIView):
     def get(self, request):
-        sector = request.query_params.get("sector", "").strip().lower()
+        raw_sector = request.query_params.get("sector", "")
+        sector = resolve_sector(raw_sector)
         if not sector:
             return Response(
                 {
