@@ -1,0 +1,21 @@
+[Unit]
+Description=TradeAnalytics Backend (Django API)
+After=network.target
+
+[Service]
+Type=simple
+User=__SERVICE_USER__
+WorkingDirectory=__APP_DIR__
+
+Environment=BACKEND_HOST=127.0.0.1
+Environment=BACKEND_PORT=8000
+Environment=CUDA_VISIBLE_DEVICES=-1
+Environment=TF_CPP_MIN_LOG_LEVEL=3
+
+ExecStart=/usr/bin/env bash __APP_DIR__/scripts/ubuntu/backend.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

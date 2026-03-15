@@ -63,6 +63,23 @@ sudo systemctl status tradeanalytics
 sudo journalctl -u tradeanalytics -f
 ```
 
+### Nginx + 502 Bad Gateway (recommended backend-only service)
+
+If you’re using Nginx as a reverse proxy, run the API as its own service (so it doesn’t go down when the Vite dev process exits):
+
+```bash
+chmod +x scripts/ubuntu/backend.sh scripts/ubuntu/install-backend-service.sh
+APP_DIR=/home/azureuser/PortfolioProject SERVICE_USER=azureuser scripts/ubuntu/install-backend-service.sh
+```
+
+Quick checks:
+
+```bash
+sudo systemctl status tradeanalytics-backend --no-pager -l
+curl -i http://127.0.0.1:8000/api/all-sector-stocks/
+sudo journalctl -u nginx -n 80 --no-pager
+```
+
 ## Troubleshooting
 
 ### RNN forecast (TensorFlow) on Windows
